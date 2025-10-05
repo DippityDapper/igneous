@@ -62,9 +62,9 @@ namespace Engine
                 zoom *= 0.9f;
 
             if (zoom < minZoom)
-                zoom = 0.1f;
+                zoom = minZoom;
             if (zoom > maxZoom)
-                zoom = 10.0f;
+                zoom = maxZoom;
         }
     }
 
