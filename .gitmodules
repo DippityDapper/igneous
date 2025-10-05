@@ -1,0 +1,15 @@
+[submodule "libs/SDL3"]
+	path = libs/SDL3
+	url = https://github.com/libsdl-org/SDL
+[submodule "libs/SDL3_image"]
+	path = libs/SDL3_image
+	url = https://github.com/libsdl-org/SDL_image.git
+[submodule "libs/imgui"]
+	path = libs/imgui
+	url = https://github.com/ocornut/imgui
+[submodule "libs/enet"]
+	path = libs/enet
+	url = https://github.com/lsalzman/enet.git
+[submodule "libs/SQLiteCpp"]
+	path = libs/SQLiteCpp
+	url = https://github.com/SRombauts/SQLiteCpp.git
