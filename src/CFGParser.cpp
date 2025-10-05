@@ -1,16 +1,18 @@
 #include "dapper2d/CFGParser.hpp"
 
+#include <sstream>
+#include <fstream>
+
+#include "SDL3/SDL.h"
+
 namespace Engine
 {
     std::map<std::string, std::map<std::string, std::string>> CFGParser::configs;
 
-    void CFGParser::LoadConfig(const char* fileName)
+    void CFGParser::LoadConfig(std::string& fileName)
     {
-        char *fullPath = nullptr;
-        SDL_asprintf(&fullPath, "%sconfigs/%s", SDL_GetBasePath(), fileName);
-
+        std::string fullPath = "configs/" + fileName;
         std::ifstream serverPropertiesFile(fullPath);
-        SDL_free(fullPath);
 
         if (!serverPropertiesFile.is_open())
         {
@@ -37,60 +39,55 @@ namespace Engine
         }
     }
 
-    const char* CFGParser::GetString(const char* configName, const char* key)
+    std::string CFGParser::GetString(std::string& configName, std::string& key)
     {
-        auto fileIt = configs.find(configName);
-        if (fileIt == configs.end())
+        if (!configs.contains(configName))
             return "";
 
-        auto& kvp = fileIt->second;
-        auto it = kvp.find(key);
-        if (it == kvp.end())
+        if (!configs[configName].contains(key))
             return "";
 
-        return it->second.c_str();
+        return configs[configName][key];
     }
 
-    int CFGParser::GetInt(const char* configName, const char* key)
+    int CFGParser::GetInt(std::string& configName, std::string& key)
     {
-        auto fileIt = configs.find(configName);
-        if (fileIt == configs.end())
+        if (!configs.contains(configName))
             return 0;
 
-        auto& kvp = fileIt->second;
-        auto it = kvp.find(key);
-        if (it == kvp.end())
+        if (!configs[configName].contains(key))
             return 0;
+
+        std::string val = configs[configName][key];
 
         try
         {
-            int num = std::stoi(it->second);
+            int num = std::stoi(val);
             return num;
         }
         catch (const std::invalid_argument&)
         {
-            SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Config Parser could not parse int for key %s in %s", it->second.c_str(), configName);
+            SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Config Parser could not parse int for key %s in %s", val.c_str(), configName.c_str());
             return 0;
         }
     }
 
-    int CFGParser::GetBool(const char* configName, const char* key)
+    int CFGParser::GetBool(std::string& configName, std::string& key)
     {
-        auto fileIt = configs.find(configName);
-        if (fileIt == configs.end())
+        if (!configs.contains(configName))
             return 0;
 
-        auto& kvp = fileIt->second;
-        auto it = kvp.find(key);
-        if (it == kvp.end())
+        if (!configs[configName].contains(key))
             return 0;
 
-        std::istringstream ss(it->second);
+        std::string val = configs[configName][key];
+
+        std::istringstream ss(val);
 
         bool value = false;
         if (!(ss >> std::boolalpha >> value))
         {
-            SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Config Parser could not parse bool for key %s in %s", it->second.c_str(), configName);
+            SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Config Parser could not parse bool for key %s in %s", val.c_str(), configName.c_str());
             return false;
         }
 

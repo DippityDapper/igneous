@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SDL3/SDL.h"
+union SDL_Event;
 
 namespace Engine
 {

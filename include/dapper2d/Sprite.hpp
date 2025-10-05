@@ -3,7 +3,8 @@
 #include <string>
 #include <memory>
 
-#include "SDL3/SDL.h"
+struct SDL_Texture;
+struct SDL_FRect;
 
 namespace Engine
 {

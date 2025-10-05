@@ -1,13 +1,7 @@
 #pragma once
 
-#include <vector>
-#include <string>
-#include <sstream>
-#include <fstream>
 #include <map>
-#include <cstdlib>
-
-#include "SDL3/SDL.h"
+#include <string>
 
 namespace Engine
 {
@@ -17,10 +11,10 @@ namespace Engine
         static std::map<std::string, std::map<std::string, std::string>> configs;
 
     public:
-        static void LoadConfig(const char* fileName);
+        static void LoadConfig(std::string& fileName);
 
-        static const char* GetString(const char* configName, const char* key);
-        static int GetInt(const char* configName, const char* key);
-        static int GetBool(const char* configName, const char* key);
+        static std::string GetString(std::string& configName, std::string& key);
+        static int GetInt(std::string& configName, std::string& key);
+        static int GetBool(std::string& configName, std::string& key);
     };
 }

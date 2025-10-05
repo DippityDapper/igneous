@@ -1,5 +1,7 @@
 #include "dapper2d/Camera.hpp"
 
+#include "SDL3/SDL.h"
+
 namespace Engine
 {
     Camera* Camera::main = nullptr;

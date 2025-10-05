@@ -1,4 +1,7 @@
 #include "dapper2d/ResourceLoader.hpp"
+
+#include "SDL3_image/SDL_image.h"
+
 #include "dapper2d/Renderer.hpp"
 
 namespace Engine

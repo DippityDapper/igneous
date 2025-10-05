@@ -1,5 +1,7 @@
 #include "dapper2d/Window.hpp"
 
+#include "SDL3/SDL.h"
+
 namespace Engine
 {
     SDL_Window* Window::window = nullptr;

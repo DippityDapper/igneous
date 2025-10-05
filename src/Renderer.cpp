@@ -1,5 +1,15 @@
 #include "dapper2d/Renderer.hpp"
 
+#include "SDL3/SDL.h"
+#include "imgui.h"
+#include "backends/imgui_impl_sdl3.h"
+#include "backends/imgui_impl_sdlrenderer3.h"
+
+#include "dapper2d/Vec2.hpp"
+#include "dapper2d/Sprite.hpp"
+#include "dapper2d/Camera.hpp"
+#include "dapper2d/Window.hpp"
+
 namespace Engine
 {
     SDL_Renderer* Renderer::renderer = nullptr;

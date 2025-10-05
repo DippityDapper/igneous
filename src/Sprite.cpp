@@ -1,4 +1,7 @@
 #include "dapper2d/Sprite.hpp"
+
+#include "SDL3/SDL.h"
+
 #include "dapper2d/ResourceLoader.hpp"
 
 namespace Engine

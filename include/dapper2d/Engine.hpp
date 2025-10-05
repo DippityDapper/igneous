@@ -1,20 +1,13 @@
 #pragma once
 
-#include <map>
-
-#include "imgui.h"
-#include "backends/imgui_impl_sdl3.h"
-#include "backends/imgui_impl_sdlrenderer3.h"
-
-#include "dapper2d/Packets.hpp"
-#include "dapper2d/CFGParser.hpp"
-#include "dapper2d/Scene.hpp"
-#include "dapper2d/Renderer.hpp"
-#include "dapper2d/Window.hpp"
-#include "dapper2d/ResourceLoader.hpp"
+#include <cstdint>
 
 namespace Engine
 {
+    class Window;
+    class Renderer;
+    class Scene;
+
     class Engine
     {
     private:
@@ -23,8 +16,8 @@ namespace Engine
         static Scene* scene;
 
     public:
-        Window window;
-        Renderer renderer;
+        Window* window = nullptr;
+        Renderer* renderer = nullptr;
 
         uint64_t lastTick = 0;
         uint64_t currentTick = 0;
@@ -33,7 +26,7 @@ namespace Engine
     private:
         void Render();
         void HandleEvents();
-        SDL_AppResult InitSDL();
+        bool InitSDL();
 
     public:
         void Init(Scene* _scene);

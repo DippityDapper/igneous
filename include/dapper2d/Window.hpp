@@ -1,15 +1,17 @@
 #pragma once
 
-#include "SDL3/SDL.h"
-
 #include "dapper2d/Vec2.hpp"
+
+struct SDL_Window;
 
 namespace Engine
 {
     class Window
     {
-    public:
+    private:
         static SDL_Window* window;
+
+    public:
         static Vec2<int> viewport;
 
     public:

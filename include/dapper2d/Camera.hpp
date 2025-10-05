@@ -1,10 +1,8 @@
 #pragma once
 
-#include <memory>
-
-#include "SDL3/SDL.h"
-
 #include "dapper2d/Vec2.hpp"
+
+union SDL_Event;
 
 namespace Engine
 {

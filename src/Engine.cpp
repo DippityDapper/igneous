@@ -1,12 +1,20 @@
 #include "dapper2d/Engine.hpp"
 
+#include "imgui_impl_sdl3.h"
+
+#include "dapper2d/Scene.hpp"
+#include "dapper2d/Renderer.hpp"
+#include "dapper2d/Window.hpp"
+#include "dapper2d/ResourceLoader.hpp"
+#include "dapper2d/Camera.hpp"
+
 namespace Engine
 {
     Scene* Engine::scene = nullptr;
 
     void Engine::Init(Scene* _scene)
     {
-        if (InitSDL() == SDL_APP_FAILURE)
+        if (!InitSDL())
         {
             running = false;
             return;
@@ -15,21 +23,21 @@ namespace Engine
         SetScene(_scene);
     }
 
-    SDL_AppResult Engine::InitSDL()
+    bool Engine::InitSDL()
     {
         if (!SDL_Init(SDL_INIT_VIDEO))
         {
             SDL_Log("SDL init failed: %s", SDL_GetError());
-            return SDL_APP_FAILURE;
+            return false;
         }
 
-        window.Init(640, 360);
-        renderer.Init();
+        window->Init(640, 360);
+        renderer->Init();
 
         currentTick = SDL_GetTicks();
         lastTick = currentTick;
 
-        return SDL_APP_CONTINUE;
+        return true;
     }
 
     void Engine::HandleEvents()
@@ -89,7 +97,7 @@ namespace Engine
         Renderer::BufferClear();
         if (scene)
             scene->RenderInternal();
-        renderer.Render();
+        renderer->Render();
     }
 
     void Engine::Clean()
@@ -100,8 +108,11 @@ namespace Engine
             delete scene;
         }
 
-        renderer.Clean();
-        window.Clean();
+        renderer->Clean();
+        window->Clean();
+
+        delete renderer;
+        delete window;
 
         SDL_Quit();
     }

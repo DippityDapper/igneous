@@ -1,5 +1,7 @@
 #include "dapper2d/Scene.hpp"
 
+#include "SDL3/SDL.h"
+
 namespace Engine
 {
 
