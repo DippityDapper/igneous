@@ -4,7 +4,7 @@
 
 #include "SDL3/SDL.h"
 
-#include "engine/vector/Vec2.h"
+#include "dapper2d/Vec2.hpp"
 
 namespace Engine
 {

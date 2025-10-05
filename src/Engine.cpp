@@ -1,8 +1,10 @@
-#include "engine/engine/Engine.h"
+#include "dapper2d/Engine.hpp"
 
 namespace Engine
 {
-    void Engine::Init()
+    Scene* Engine::scene = nullptr;
+
+    void Engine::Init(Scene* _scene)
     {
         if (InitSDL() == SDL_APP_FAILURE)
         {
@@ -16,8 +18,7 @@ namespace Engine
 //            return;
 //        }
 
-        Game::World* world = new Game::World();
-        SetScene(world);
+        SetScene(_scene);
     }
 
     SDL_AppResult Engine::InitSDL()

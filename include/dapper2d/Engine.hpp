@@ -6,15 +6,13 @@
 #include "backends/imgui_impl_sdl3.h"
 #include "backends/imgui_impl_sdlrenderer3.h"
 
-#include "engine/packets/Packets.h"
-#include "engine/parser/CFGParser.h"
-
-#include "engine/entity/ClientEntity.h"
-#include "engine/networking/NetworkManager.h"
-#include "engine/world/World.h"
-#include "engine/engine/Scene.h"
-#include "engine/engine/Renderer.h"
-#include "engine/engine/Window.h"
+#include "dapper2d/Packets.hpp"
+#include "dapper2d/CFGParser.hpp"
+#include "dapper2d/NetworkManager.hpp"
+#include "dapper2d/Scene.hpp"
+#include "dapper2d/Renderer.hpp"
+#include "dapper2d/Window.hpp"
+#include "dapper2d/ResourceLoader.hpp"
 
 namespace Engine
 {
@@ -24,7 +22,7 @@ namespace Engine
         bool running = true;
         NetworkManager networkManager{};
 
-        Scene* scene = nullptr;
+        static Scene* scene;
 
     public:
         Window window;
@@ -35,16 +33,15 @@ namespace Engine
         float deltaTime = 0;
 
     private:
+        void Render();
+        void HandleEvents();
         SDL_AppResult InitSDL();
         SDL_AppResult InitNetworking();
 
     public:
-        void Init();
+        void Init(Scene* _scene);
         void Update();
-        void Render();
         void Clean();
-        void HandleEvents();
-
-        void SetScene(Scene* _scene);
+        static void SetScene(Scene* _scene);
     };
 }

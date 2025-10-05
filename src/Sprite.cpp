@@ -1,5 +1,5 @@
-#include "engine/entity/Sprite.h"
-#include "engine/resources/ResourceLoader.h"
+#include "dapper2d/Sprite.hpp"
+#include "dapper2d/ResourceLoader.hpp"
 
 namespace Engine
 {

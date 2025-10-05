@@ -5,11 +5,10 @@
 #include "backends/imgui_impl_sdl3.h"
 #include "backends/imgui_impl_sdlrenderer3.h"
 
-#include "engine/vector/Vec2.h"
-
-#include "engine/engine/Window.h"
-#include "engine/camera/Camera.h"
-#include "engine/entity/Sprite.h"
+#include "dapper2d/Vec2.hpp"
+#include "dapper2d/Window.hpp"
+#include "dapper2d/Camera.hpp"
+#include "dapper2d/Sprite.hpp"
 
 namespace Engine
 {

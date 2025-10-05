@@ -1,5 +1,5 @@
-#include "engine/resources/ResourceLoader.h"
-#include "engine/engine/Renderer.h"
+#include "dapper2d/ResourceLoader.hpp"
+#include "dapper2d/Renderer.hpp"
 
 namespace Engine
 {

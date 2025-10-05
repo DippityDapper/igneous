@@ -7,7 +7,7 @@
 #include "SDL3/SDL.h"
 #include "enet/enet.h"
 
-#include "engine/packets/Packets.h"
+#include "dapper2d/Packets.hpp"
 
 namespace Engine
 {
