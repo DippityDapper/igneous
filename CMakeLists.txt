@@ -42,7 +42,7 @@ add_library(dapper2d STATIC
 )
 
 target_include_directories(dapper2d PUBLIC
-        ${CMAKE_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 target_link_libraries(dapper2d PUBLIC

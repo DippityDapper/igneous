@@ -3,50 +3,64 @@
 
 namespace Engine
 {
-    std::unordered_map<std::string, SDL_Texture*> ResourceLoader::textures;
+    std::unordered_map<std::string, std::weak_ptr<SDL_Texture>> ResourceLoader::textures;
+    std::unordered_map<std::string, std::weak_ptr<SDL_Texture>>::iterator ResourceLoader::cleanupIt = ResourceLoader::textures.begin();
+    SDL_ScaleMode ResourceLoader::scaleMode = SDL_SCALEMODE_LINEAR;
 
-    SDL_Texture* ResourceLoader::LoadTexture(std::string& texturePath)
+    std::shared_ptr<SDL_Texture> ResourceLoader::LoadTexture(std::string& texturePath)
     {
         if (texturePath.empty())
             return nullptr;
 
         std::string fullPath = "assets/" + texturePath;
 
-        if (textures.contains(fullPath))
+        auto existing = textures[fullPath].lock();
+        if (existing)
         {
-            return textures[fullPath];
+            return existing;
         }
 
-        SDL_Texture *texture = IMG_LoadTexture(Renderer::GetRenderer(), fullPath.c_str());
+        SDL_Texture *rawTexture = IMG_LoadTexture(Renderer::GetRenderer(), fullPath.c_str());
 
-        if (!texture)
+        if (!rawTexture)
         {
             SDL_Log("Texture failed to load: %s : %s", texturePath.c_str(), SDL_GetError());
             return nullptr;
         }
 
-        SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
+        SDL_SetTextureScaleMode(rawTexture, scaleMode);
+        std::shared_ptr<SDL_Texture> texture(rawTexture, TextureDeleter{});
         textures[fullPath] = texture;
 
         return texture;
     }
 
-    void ResourceLoader::UnloadTexture(std::string& texturePath)
+    void ResourceLoader::CleanExpired(size_t maxPerCall)
     {
-        std::string fullPath = "assets/" + texturePath;
-        if (textures.contains(fullPath))
+        size_t count = 0;
+
+        while (count < maxPerCall && !textures.empty())
         {
-            SDL_DestroyTexture(textures[fullPath]);
-            textures.erase(fullPath);
+            if (cleanupIt == textures.end())
+            {
+                cleanupIt = textures.begin(); // wrap around
+            }
+
+            if (cleanupIt->second.expired())
+            {
+                cleanupIt = textures.erase(cleanupIt);
+            }
+            else
+            {
+                ++cleanupIt;
+            }
+
+            ++count;
         }
     }
 
-    void ResourceLoader::UnloadAll()
+    void ResourceLoader::SetScaleMode(SDL_ScaleMode _scaleMode)
     {
-        for (auto& pair : textures)
-        {
-            SDL_DestroyTexture(pair.second);
-        }
-        textures.clear();
+        scaleMode = _scaleMode;
     }
 }

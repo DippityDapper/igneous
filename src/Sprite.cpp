@@ -8,7 +8,7 @@ namespace Engine
         texture = ResourceLoader::LoadTexture(texturePath);
         if (texture)
         {
-            SDL_GetTextureSize(texture, &w, &h);
+            SDL_GetTextureSize(texture.get(), &w, &h);
             tileW = w;
             tileH = h;
         }
@@ -19,7 +19,7 @@ namespace Engine
         texture = ResourceLoader::LoadTexture(texturePath);
         if (texture)
         {
-            SDL_GetTextureSize(texture, &w, &h);
+            SDL_GetTextureSize(texture.get(), &w, &h);
             tileW = _w;
             tileH = _h;
         }
@@ -30,7 +30,7 @@ namespace Engine
 
     SDL_Texture *Sprite::GetTexture()
     {
-        return texture;
+        return texture.get();
     }
 
     SDL_FRect Sprite::GetSourceRect()

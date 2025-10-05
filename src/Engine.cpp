@@ -12,12 +12,6 @@ namespace Engine
             return;
         }
 
-//        if (InitNetworking() == SDL_APP_FAILURE)
-//        {
-//            running = false;
-//            return;
-//        }
-
         SetScene(_scene);
     }
 
@@ -38,30 +32,6 @@ namespace Engine
         return SDL_APP_CONTINUE;
     }
 
-    SDL_AppResult Engine::InitNetworking()
-    {
-        if (networkManager.Init() == SDL_APP_FAILURE)
-        {
-            return SDL_APP_FAILURE;
-        }
-        if (networkManager.CreateClient() == SDL_APP_FAILURE)
-        {
-            return SDL_APP_FAILURE;
-        }
-
-        CFGParser::LoadConfig("server-properties.cfg");
-
-        std::string ip = CFGParser::GetString("server-properties.cfg", "server-ip");
-        int port = CFGParser::GetInt("server-properties.cfg", "server-port");
-
-        if (networkManager.ConnectToServer(port, ip) == SDL_APP_FAILURE)
-        {
-            return SDL_APP_FAILURE;
-        }
-
-        return SDL_APP_CONTINUE;
-    }
-
     void Engine::HandleEvents()
     {
         SDL_Event sdlEvent;
@@ -72,8 +42,6 @@ namespace Engine
             if (sdlEvent.type == SDL_EVENT_QUIT)
             {
                 running = false;
-                if (networkManager.clientId >= 0)
-                    networkManager.Disconnect();
                 return;
             }
             if (sdlEvent.type == SDL_EVENT_KEY_DOWN)
@@ -81,8 +49,6 @@ namespace Engine
                 if (sdlEvent.key.key == SDLK_ESCAPE)
                 {
                     running = false;
-                    if (networkManager.clientId >= 0)
-                        networkManager.Disconnect();
                     return;
                 }
             }
@@ -113,6 +79,7 @@ namespace Engine
             if (scene)
                 scene->UpdateInternal(deltaTime);
 
+            ResourceLoader::CleanExpired(10);
             Render();
         }
     }
@@ -133,11 +100,8 @@ namespace Engine
             delete scene;
         }
 
-        ResourceLoader::UnloadAll();
-
         renderer.Clean();
         window.Clean();
-        networkManager.Clean();
 
         SDL_Quit();
     }

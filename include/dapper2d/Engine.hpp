@@ -8,7 +8,6 @@
 
 #include "dapper2d/Packets.hpp"
 #include "dapper2d/CFGParser.hpp"
-#include "dapper2d/NetworkManager.hpp"
 #include "dapper2d/Scene.hpp"
 #include "dapper2d/Renderer.hpp"
 #include "dapper2d/Window.hpp"
@@ -20,7 +19,6 @@ namespace Engine
     {
     private:
         bool running = true;
-        NetworkManager networkManager{};
 
         static Scene* scene;
 
@@ -36,7 +34,6 @@ namespace Engine
         void Render();
         void HandleEvents();
         SDL_AppResult InitSDL();
-        SDL_AppResult InitNetworking();
 
     public:
         void Init(Scene* _scene);

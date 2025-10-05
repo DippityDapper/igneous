@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <memory>
 
 #include "SDL3/SDL.h"
 
@@ -9,7 +10,7 @@ namespace Engine
     class Sprite
     {
     private:
-        SDL_Texture *texture = nullptr;
+        std::shared_ptr<SDL_Texture> texture = nullptr;
 
     public:
         float w = 0;
