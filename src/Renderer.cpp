@@ -53,8 +53,8 @@ namespace Engine
 
         SDL_FRect dest;
 
-        int spriteW = sprite->w;
-        int spriteH = sprite->h;
+        int spriteW = sprite->tileW;
+        int spriteH = sprite->tileH;
 
         dest.w = (float)spriteW * mainCamera->zoom;
         dest.h = (float)spriteH * mainCamera->zoom;

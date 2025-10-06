@@ -66,7 +66,7 @@ namespace Engine
                 Window::viewport.y = sdlEvent.window.data2;
             }
             if (Camera::main)
-                    Camera::main->HandleEvents(sdlEvent);
+                Camera::main->HandleEventsInternal(sdlEvent);
             if (scene)
                 scene->HandleEventsInternal(sdlEvent);
         }
@@ -83,7 +83,7 @@ namespace Engine
             deltaTime = (float)(currentTick - lastTick) / 1000.0f;
 
             if (Camera::main)
-                Camera::main->Update(deltaTime);
+                Camera::main->UpdateInternal(deltaTime);
             if (scene)
                 scene->UpdateInternal(deltaTime);
 
