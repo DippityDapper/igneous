@@ -9,12 +9,12 @@ namespace Engine
 {
     std::map<std::string, std::map<std::string, std::string>> CFGParser::configs;
 
-    void CFGParser::LoadConfig(std::string& fileName)
+    void CFGParser::LoadConfig(const std::string& fileName)
     {
-        std::string fullPath = "configs/" + fileName;
-        std::ifstream serverPropertiesFile(fullPath);
+        std::string fullPath = "configs/" + fileName + ".cfg";
+        std::ifstream configFile(fullPath);
 
-        if (!serverPropertiesFile.is_open())
+        if (!configFile.is_open())
         {
             SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to load server config file");
             return;
@@ -23,7 +23,7 @@ namespace Engine
         configs[fileName] = {};
         std::string line;
 
-        while (std::getline(serverPropertiesFile, line))
+        while (std::getline(configFile, line))
         {
             if (line.empty() || line[0] == '#')
                 continue;
@@ -39,7 +39,7 @@ namespace Engine
         }
     }
 
-    std::string CFGParser::GetString(std::string& configName, std::string& key)
+    std::string CFGParser::GetString(const std::string& configName, const std::string& key)
     {
         if (!configs.contains(configName))
             return "";
@@ -50,7 +50,7 @@ namespace Engine
         return configs[configName][key];
     }
 
-    int CFGParser::GetInt(std::string& configName, std::string& key)
+    int CFGParser::GetInt(const std::string& configName, const std::string& key)
     {
         if (!configs.contains(configName))
             return 0;
@@ -72,7 +72,29 @@ namespace Engine
         }
     }
 
-    int CFGParser::GetBool(std::string& configName, std::string& key)
+    uint32_t CFGParser::GetUInt32(const std::string& configName, const std::string& key)
+    {
+        if (!configs.contains(configName))
+            return 0;
+
+        if (!configs[configName].contains(key))
+            return 0;
+
+        std::string val = configs[configName][key];
+
+        try
+        {
+            uint32_t num = std::stoul(val);
+            return static_cast<uint32_t>(num);
+        }
+        catch (const std::invalid_argument&)
+        {
+            SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Config Parser could not parse int for key %s in %s", val.c_str(), configName.c_str());
+            return 0;
+        }
+    }
+
+    int CFGParser::GetBool(const std::string& configName, const std::string& key)
     {
         if (!configs.contains(configName))
             return 0;

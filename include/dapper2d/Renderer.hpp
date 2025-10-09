@@ -1,6 +1,7 @@
 #pragma once
 
 struct SDL_Renderer;
+struct SDL_Texture;
 
 namespace Engine
 {
@@ -20,6 +21,8 @@ namespace Engine
 
         static void BufferClear();
         static void BufferAdd(Vec2<float> position, Sprite* sprite);
+        static void BufferAdd(Vec2<float> position, SDL_Texture* texture);
+        static void BufferAddNoOffset(Vec2<float> position, Sprite* sprite);
         static SDL_Renderer* GetRenderer();
     };
 }

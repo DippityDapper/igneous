@@ -24,10 +24,11 @@ namespace Engine
         int y = 0;
 
     public:
-        explicit Sprite(std::string& texturePath);
-        Sprite(std::string& texturePath, float _w, float _h, int _x, int _y);
+        explicit Sprite(const std::string& texturePath);
+        Sprite(Sprite& sprite);
+        Sprite(const std::string& texturePath, float _w, float _h, int _x, int _y);
 
         SDL_Texture* GetTexture();
-        SDL_FRect GetSourceRect();
+        SDL_FRect GetSourceRect() const;
     };
 }

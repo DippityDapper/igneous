@@ -6,7 +6,7 @@
 
 namespace Engine
 {
-    Sprite::Sprite(std::string& texturePath)
+    Sprite::Sprite(const std::string& texturePath)
     {
         texture = ResourceLoader::LoadTexture(texturePath);
         if (texture)
@@ -17,7 +17,16 @@ namespace Engine
         }
     }
 
-    Sprite::Sprite(std::string& texturePath, float _w, float _h, int _x, int _y)
+    Sprite::Sprite(Sprite &sprite)
+    {
+        texture = sprite.texture;
+        tileW = sprite.tileW;
+        tileH = sprite.tileH;
+        x = sprite.x;
+        y = sprite.y;
+    }
+
+    Sprite::Sprite(const std::string& texturePath, float _w, float _h, int _x, int _y)
     {
         texture = ResourceLoader::LoadTexture(texturePath);
         if (texture)
@@ -36,21 +45,15 @@ namespace Engine
         return texture.get();
     }
 
-    SDL_FRect Sprite::GetSourceRect()
+    SDL_FRect Sprite::GetSourceRect() const
     {
         SDL_FRect src;
 
         src.w = tileW;
         src.h = tileH;
 
-        int tilesPerRow = w / tileW;
-        int tilesPerCol = h / tileH;
-
-        int wrappedX = ((x % tilesPerRow) + tilesPerRow) % tilesPerRow;
-        int wrappedY = ((y % tilesPerCol) + tilesPerCol) % tilesPerCol;
-
-        src.x = (float)(wrappedX * tileW);
-        src.y = (float)(wrappedY * tileH);
+        src.x = ((float)x * tileW);
+        src.y = ((float)y * tileH);
 
         return src;
     }

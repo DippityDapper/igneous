@@ -42,6 +42,11 @@ namespace Engine
             return { x / rhs.x, y / rhs.y };
         }
 
+        Vec2 operator%(int mod) const
+        {
+            return { x % mod, y % mod };
+        }
+
         Vec2& operator+=(const Vec2& rhs)
         {
             x += rhs.x;
@@ -69,6 +74,11 @@ namespace Engine
             return (x < rhs.x) || (x == rhs.x && y < rhs.y);
         }
 
+        bool operator>(const Vec2& rhs) const
+        {
+            return (x > rhs.x) || (x == rhs.x && y > rhs.y);
+        }
+
         Vec2<float> Normalized() const
         {
             float fx = static_cast<float>(x);
@@ -86,6 +96,20 @@ namespace Engine
             float dx = static_cast<float>(x) - static_cast<float>(to.x);
             float dy = static_cast<float>(y) - static_cast<float>(to.y);
             return std::sqrt(dx * dx + dy * dy);
+        }
+
+        Vec2<int> Ceil() const
+        {
+            int dx = (int)std::ceil(x);
+            int dy = (int)std::ceil(y);
+            return {dx, dy};
+        }
+
+        Vec2<int> Floor() const
+        {
+            int dx = (int)std::floor(x);
+            int dy = (int)std::floor(y);
+            return {dx, dy};
         }
     };
 }

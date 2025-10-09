@@ -69,14 +69,54 @@ namespace Engine
         dest.y = (position.y - mainCamera->position.y) * mainCamera->zoom + viewportH * 0.5f;
 
         SDL_FRect src = sprite->GetSourceRect();
+        SDL_RenderTexture(renderer, sprite->GetTexture(), &src, &dest);
+    }
 
-        if ((dest.x > -(spriteW * mainCamera->zoom) && dest.x < viewportW) && (dest.y > -(spriteH * mainCamera->zoom) && dest.y < viewportH))
-            SDL_RenderTexture(renderer, sprite->GetTexture(), &src, &dest);
+    void Renderer::BufferAdd(Vec2<float> position, SDL_Texture* texture)
+    {
+        if (!texture)
+            return;
+
+        Engine::Camera* camera = Engine::Camera::main;
+        float zoom = camera->zoom;
+
+        SDL_FRect dest;
+
+        dest.w = texture->w * zoom;
+        dest.h = texture->h * zoom;
+
+        int viewportW = Engine::Window::viewport.x;
+        int viewportH = Engine::Window::viewport.y;
+
+        if (viewportW <= 0 || viewportH <= 0)
+            return;
+
+        dest.x = (position.x - camera->position.x) * zoom + viewportW * 0.5f;
+        dest.y = (position.y - camera->position.y) * zoom + viewportH * 0.5f;
+
+        SDL_RenderTexture(renderer, texture, nullptr, &dest);
+    }
+
+    void Renderer::BufferAddNoOffset(Vec2<float> position, Sprite* sprite)
+    {
+        if (!sprite || !sprite->GetTexture())
+            return;
+
+        SDL_FRect dest;
+
+        dest.w = sprite->tileW;
+        dest.h = sprite->tileH;
+
+        dest.x = position.x;
+        dest.y = position.y;
+
+        SDL_FRect src = sprite->GetSourceRect();
+        SDL_RenderTexture(renderer, sprite->GetTexture(), &src, &dest);
     }
 
     void Renderer::BufferClear()
     {
-        SDL_SetRenderDrawColor(renderer, 0, 0, 255, SDL_ALPHA_OPAQUE);
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
         SDL_RenderClear(renderer);
         ImGui_ImplSDLRenderer3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
