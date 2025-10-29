@@ -11,8 +11,7 @@ namespace Engine
     class Engine
     {
     private:
-        bool running = true;
-
+        static bool running;
         static Scene* scene;
 
     public:
@@ -33,5 +32,6 @@ namespace Engine
         void Update();
         void Clean();
         static void SetScene(Scene* _scene);
+        static void Quit();
     };
 }

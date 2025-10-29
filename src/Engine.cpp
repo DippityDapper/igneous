@@ -10,6 +10,7 @@
 
 namespace Engine
 {
+    bool Engine::running = true;
     Scene* Engine::scene = nullptr;
 
     void Engine::Init(Scene* _scene)
@@ -51,14 +52,6 @@ namespace Engine
             {
                 running = false;
                 return;
-            }
-            if (sdlEvent.type == SDL_EVENT_KEY_DOWN)
-            {
-                if (sdlEvent.key.key == SDLK_ESCAPE)
-                {
-                    running = false;
-                    return;
-                }
             }
             if (sdlEvent.type == SDL_EVENT_WINDOW_RESIZED)
             {
@@ -127,5 +120,10 @@ namespace Engine
 
         scene = _scene;
         scene->InitInternal();
+    }
+
+    void Engine::Quit()
+    {
+        running = false;
     }
 }

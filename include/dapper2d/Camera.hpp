@@ -14,6 +14,9 @@ namespace Engine
         Vec2<float> position{0,0};
         float zoom = 1.0f;
 
+        float minZoom = 0.1f;
+        float maxZoom = 10.0f;
+
         Vec2<float> previousPosition{0,0};
         float previousZoom = 1.0f;
 
