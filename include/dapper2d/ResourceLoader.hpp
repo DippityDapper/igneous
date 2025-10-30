@@ -25,9 +25,9 @@ namespace Engine
     class ResourceLoader
     {
     private:
-        static std::vector<std::weak_ptr<SDL_Texture>> textures;
+        static std::unordered_map<int, std::weak_ptr<SDL_Texture>> textures;
         static std::unordered_map<std::string, int> textureMap;
-        static size_t cleanupIndex;
+        static std::unordered_map<int, std::string> idToPath;
         static SDL_ScaleMode scaleMode;
 
     public:

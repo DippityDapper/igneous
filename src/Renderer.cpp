@@ -44,11 +44,12 @@ namespace Engine
         SDL_RenderPresent(renderer);
     }
 
-    void Renderer::BufferAdd(Vec2<float> position, Sprite* sprite)
+    void Renderer::BufferAdd(Vec2<float> position, Sprite* sprite, Camera* camera)
     {
-        Camera* mainCamera = Camera::main;
+        if (camera == nullptr)
+            camera = Camera::main;
 
-        if (!mainCamera || !renderer || !sprite || !sprite->GetTexture())
+        if (!camera || !renderer || !sprite || !sprite->GetTexture())
             return;
 
         SDL_FRect dest;
@@ -56,8 +57,8 @@ namespace Engine
         int spriteW = sprite->tileW;
         int spriteH = sprite->tileH;
 
-        dest.w = (float)spriteW * mainCamera->zoom;
-        dest.h = (float)spriteH * mainCamera->zoom;
+        dest.w = (float)spriteW * camera->zoom;
+        dest.h = (float)spriteH * camera->zoom;
 
         int viewportW = Window::viewport.x;
         int viewportH = Window::viewport.y;
@@ -65,19 +66,20 @@ namespace Engine
         if (viewportW <= 0 || viewportH <= 0)
             return;
 
-        dest.x = (position.x - mainCamera->position.x) * mainCamera->zoom + viewportW * 0.5f;
-        dest.y = (position.y - mainCamera->position.y) * mainCamera->zoom + viewportH * 0.5f;
+        dest.x = (position.x - camera->position.x) * camera->zoom + viewportW * 0.5f;
+        dest.y = (position.y - camera->position.y) * camera->zoom + viewportH * 0.5f;
 
         SDL_FRect src = sprite->GetSourceRect();
         SDL_RenderTexture(renderer, sprite->GetTexture(), &src, &dest);
     }
 
-    void Renderer::BufferAdd(Vec2<float> position, SDL_Texture* texture)
+    void Renderer::BufferAdd(Vec2<float> position, SDL_Texture* texture, Camera* camera)
     {
         if (!texture)
             return;
 
-        Engine::Camera* camera = Engine::Camera::main;
+        if (camera == nullptr)
+            camera = Engine::Camera::main;
         float zoom = camera->zoom;
 
         SDL_FRect dest;
@@ -97,7 +99,7 @@ namespace Engine
         SDL_RenderTexture(renderer, texture, nullptr, &dest);
     }
 
-    void Renderer::BufferAddNoOffset(Vec2<float> position, Sprite* sprite)
+    void Renderer::BufferAdd(Vec2<float> position, Sprite* sprite)
     {
         if (!sprite || !sprite->GetTexture())
             return;

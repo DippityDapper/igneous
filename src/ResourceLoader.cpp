@@ -1,14 +1,16 @@
 #include "dapper2d/ResourceLoader.hpp"
 
+#include <random>
+
 #include "SDL3_image/SDL_image.h"
 
 #include "dapper2d/Renderer.hpp"
 
 namespace Engine
 {
-    std::vector<std::weak_ptr<SDL_Texture>> ResourceLoader::textures{};
+    std::unordered_map<int, std::weak_ptr<SDL_Texture>> ResourceLoader::textures{};
     std::unordered_map<std::string, int> ResourceLoader::textureMap{};
-    size_t ResourceLoader::cleanupIndex = 0;
+    std::unordered_map<int, std::string> ResourceLoader::idToPath;
     SDL_ScaleMode ResourceLoader::scaleMode = SDL_SCALEMODE_LINEAR;
 
     std::shared_ptr<SDL_Texture> ResourceLoader::LoadTexture(const std::string& texturePath)
@@ -39,9 +41,13 @@ namespace Engine
         SDL_SetTextureScaleMode(rawTexture, scaleMode);
         std::shared_ptr<SDL_Texture> texture(rawTexture, TextureDeleter{});
 
-        int textureIndex = textures.size();
-        textures.push_back(texture);
-        textureMap[fullPath] = textureIndex;
+        std::mt19937 gen(std::random_device{}());
+        std::uniform_int_distribution<> textureIdDist(0, INT32_MAX);
+        int textureId = textureIdDist(gen);
+
+        textures[textureId] = texture;
+        textureMap[fullPath] = textureId;
+        idToPath[textureId] = fullPath;
 
         return texture;
     }
@@ -51,28 +57,21 @@ namespace Engine
         if (textures.empty())
             return;
 
-        size_t count = 0;
+        size_t cleaned = 0;
 
-        while (count < maxPerCall && !textures.empty())
+        for (auto it = textures.begin(); it != textures.end() && cleaned < maxPerCall; )
         {
-            if (cleanupIndex >= textures.size())
-                cleanupIndex = 0;
-
-            if (textures[cleanupIndex].expired())
+            if (it->second.expired())
             {
-                for (auto it = textureMap.begin(); it != textureMap.end();)
-                {
-                    if (it->second == cleanupIndex)
-                        it = textureMap.erase(it);
-                    else
-                        ++it;
-                }
-
-                textures[cleanupIndex].reset();
+                textureMap.erase(idToPath[it->first]);
+                idToPath.erase(it->first);
+                it = textures.erase(it);
+                ++cleaned;
             }
-
-            ++cleanupIndex;
-            ++count;
+            else
+            {
+                ++it;
+            }
         }
     }
 
@@ -81,8 +80,7 @@ namespace Engine
         scaleMode = _scaleMode;
     }
 
-    std::shared_ptr<SDL_Texture>
-    ResourceLoader::CreateTexture(SDL_PixelFormat format, SDL_TextureAccess access, int w, int h)
+    std::shared_ptr<SDL_Texture> ResourceLoader::CreateTexture(SDL_PixelFormat format, SDL_TextureAccess access, int w, int h)
     {
         SDL_Texture* rawTexture = SDL_CreateTexture(
                 Renderer::GetRenderer(),
@@ -93,8 +91,12 @@ namespace Engine
         );
         SDL_SetTextureScaleMode(rawTexture, scaleMode);
 
+        std::mt19937 gen(std::random_device{}());
+        std::uniform_int_distribution<> textureIdDist(0, INT32_MAX);
+        int textureId = textureIdDist(gen);
+
         std::shared_ptr<SDL_Texture> texture(rawTexture, TextureDeleter{});
-        textures.push_back(texture);
+        textures[textureId] = texture;
         return texture;
     }
 }
