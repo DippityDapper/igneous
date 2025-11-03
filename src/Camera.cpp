@@ -5,14 +5,19 @@
 
 namespace Engine
 {
+    /// The main camera used for rendering.
     Camera* Camera::main = nullptr;
 
+    /// If no main camera is set, creating a new camera will set is as the main camera.
     Camera::Camera()
     {
         if (main == nullptr)
             main = this;
     }
 
+    /// If no main camera is set, creating a new camera will set is as the main camera.
+    /// @param x,y : The initial position of the camera.
+    /// @param _zoom : The initial zoom of the camera.
     Camera::Camera(float x, float y, float _zoom)
     {
         if (main == nullptr)
@@ -29,6 +34,7 @@ namespace Engine
             main = nullptr;
     }
 
+    /// Internal engine call.
     void Camera::UpdateInternal(float delta)
     {
         if (limitBounds && (previousPosition != position || previousZoom != zoom))
@@ -40,6 +46,7 @@ namespace Engine
         Update(delta);
     }
 
+    /// Internal engine call.
     void Camera::HandleEventsInternal(SDL_Event& event)
     {
         if (event.type == SDL_EVENT_WINDOW_RESIZED)
@@ -52,6 +59,9 @@ namespace Engine
         HandleEvents(event);
     }
 
+    /// Checks if a position is within the bounds of the set limits.
+    /// @param _position : The position to check.
+    /// @return true if the position is within the camera bounds, false otherwise.
     bool Camera::IsWithinBounds(Vec2<float> _position)
     {
         Vec2<float> offset = (Vec2<float>)Engine::Window::viewport / 2.0f / zoom;
@@ -66,6 +76,7 @@ namespace Engine
         return true;
     }
 
+    /// Clamps a 
     Vec2<float> Camera::ClampToBounds(Vec2<float> targetPosition)
     {
         return ClampToBounds(targetPosition, zoom);
