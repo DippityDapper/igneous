@@ -42,14 +42,27 @@ namespace Engine
         std::shared_ptr<SDL_Texture> texture(rawTexture, TextureDeleter{});
 
         std::mt19937 gen(std::random_device{}());
-        std::uniform_int_distribution<> textureIdDist(0, INT32_MAX);
-        int textureId = textureIdDist(gen);
 
-        textures[textureId] = texture;
-        textureMap[fullPath] = textureId;
-        idToPath[textureId] = fullPath;
+        int textureId = -1;
+        do
+        {
+            std::uniform_int_distribution<> textureIdDist(0, INT32_MAX);
+            textureId = textureIdDist(gen);
+        } while (textures.contains(textureId));
 
-        return texture;
+        if (textureId >= 0)
+        {
+            textures[textureId] = texture;
+            textureMap[fullPath] = textureId;
+            idToPath[textureId] = fullPath;
+
+            return texture;
+        }
+
+        SDL_Log("Failed to create texture id : %s : %s", texturePath.c_str(), SDL_GetError());
+        texture.reset();
+
+        return nullptr;
     }
 
     void ResourceLoader::CleanExpired(size_t maxPerCall)
