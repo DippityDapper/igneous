@@ -88,10 +88,10 @@ namespace Engine
             currentTick = SDL_GetTicks();
             deltaTime = (float)(currentTick - lastTick) / 1000.0f;
 
-            if (Camera::main)
-                Camera::main->UpdateInternal(deltaTime);
             if (currentScene)
                 currentScene->UpdateInternal(deltaTime);
+            if (Camera::main)
+                Camera::main->UpdateInternal(deltaTime);
 
             ResourceLoader::CleanExpired(10);
             Render();

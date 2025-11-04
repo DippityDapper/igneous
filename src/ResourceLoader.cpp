@@ -13,28 +13,26 @@ namespace Engine
     std::unordered_map<int, std::string> ResourceLoader::idToPath;
     SDL_ScaleMode ResourceLoader::scaleMode = SDL_SCALEMODE_LINEAR;
 
-    std::shared_ptr<SDL_Texture> ResourceLoader::LoadTexture(const std::string& texturePath)
+    std::shared_ptr<SDL_Texture> ResourceLoader::LoadTexture(const std::string& filePath)
     {
-        if (texturePath.empty())
+        if (filePath.empty())
             return nullptr;
 
-        std::string fullPath = "assets/" + texturePath;
-
-        if (textureMap.contains(fullPath))
+        if (textureMap.contains(filePath))
         {
-            int index = textureMap[fullPath];
-            if (index >= 0 && index < (int)textures.size())
+            int id = textureMap[filePath];
+            if (id >= 0 && id < (int)textures.size())
             {
-                if (auto existing = textures[index].lock())
+                if (auto existing = textures[id].lock())
                     return existing;
             }
         }
 
-        SDL_Texture *rawTexture = IMG_LoadTexture(Renderer::GetRenderer(), fullPath.c_str());
+        SDL_Texture *rawTexture = IMG_LoadTexture(Renderer::GetRenderer(), filePath.c_str());
 
         if (!rawTexture)
         {
-            SDL_Log("Texture failed to load: %s : %s", texturePath.c_str(), SDL_GetError());
+            SDL_Log("Texture failed to load: %s : %s", filePath.c_str(), SDL_GetError());
             return nullptr;
         }
 
@@ -53,16 +51,36 @@ namespace Engine
         if (textureId >= 0)
         {
             textures[textureId] = texture;
-            textureMap[fullPath] = textureId;
-            idToPath[textureId] = fullPath;
+            textureMap[filePath] = textureId;
+            idToPath[textureId] = filePath;
 
             return texture;
         }
 
-        SDL_Log("Failed to create texture id : %s : %s", texturePath.c_str(), SDL_GetError());
+        SDL_Log("Failed to create texture id : %s : %s", filePath.c_str(), SDL_GetError());
         texture.reset();
 
         return nullptr;
+    }
+
+    std::shared_ptr<SDL_Texture> ResourceLoader::CreateTexture(SDL_PixelFormat format, SDL_TextureAccess access, int w, int h)
+    {
+        SDL_Texture* rawTexture = SDL_CreateTexture(
+                Renderer::GetRenderer(),
+                format,
+                access,
+                w,
+                h
+        );
+        SDL_SetTextureScaleMode(rawTexture, scaleMode);
+
+        std::mt19937 gen(std::random_device{}());
+        std::uniform_int_distribution<> textureIdDist(0, INT32_MAX);
+        int textureId = textureIdDist(gen);
+
+        std::shared_ptr<SDL_Texture> texture(rawTexture, TextureDeleter{});
+        textures[textureId] = texture;
+        return texture;
     }
 
     void ResourceLoader::CleanExpired(size_t maxPerCall)
@@ -91,25 +109,5 @@ namespace Engine
     void ResourceLoader::SetScaleMode(SDL_ScaleMode _scaleMode)
     {
         scaleMode = _scaleMode;
-    }
-
-    std::shared_ptr<SDL_Texture> ResourceLoader::CreateTexture(SDL_PixelFormat format, SDL_TextureAccess access, int w, int h)
-    {
-        SDL_Texture* rawTexture = SDL_CreateTexture(
-                Renderer::GetRenderer(),
-                format,
-                access,
-                w,
-                h
-        );
-        SDL_SetTextureScaleMode(rawTexture, scaleMode);
-
-        std::mt19937 gen(std::random_device{}());
-        std::uniform_int_distribution<> textureIdDist(0, INT32_MAX);
-        int textureId = textureIdDist(gen);
-
-        std::shared_ptr<SDL_Texture> texture(rawTexture, TextureDeleter{});
-        textures[textureId] = texture;
-        return texture;
     }
 }
