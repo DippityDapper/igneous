@@ -8,30 +8,80 @@ namespace Engine
     class Renderer;
     class Scene;
 
+    /// The main engine class.
+    ///
+    /// The `Engine` manages the application lifecycle — initialization, the main update/render loop,
+    /// and cleanup. It owns the renderer, window, and currently active scene.
+    ///
+    /// Typical usage:
+    /// @code
+    /// auto engine = std::make_unique<Engine::Engine>();
+    /// auto scene  = std::make_unique<Game::World>();
+    /// return engine->Run(scene.get());
+    /// @endcode
+    ///
+    /// Only one `Engine` instance should exist at a time.
     class Engine
     {
     private:
         static bool running;
-        static Scene* scene;
+
+        /// The current scene. Only the current scene will be updated and rendered.
+        static Scene* currentScene;
+
+        static uint64_t lastTick;
+        static uint64_t currentTick;
+        static float deltaTime;
 
     public:
+        /// Pointer to the window used for rendering.
+        /// @see Engine::Window
         Window* window = nullptr;
+
+        /// Pointer to the renderer handling all draw calls.
+        /// @see Engine::Renderer
         Renderer* renderer = nullptr;
 
-        uint64_t lastTick = 0;
-        uint64_t currentTick = 0;
-        float deltaTime = 0;
-
     private:
-        void Render();
+        /// Handles rendering.
+        /// @internal
+        /// @note This is called as part of the main update loop.
+        void Render() const;
+
+        /// Handles SDL and ImGui events.
+        /// @internal
+        /// @note This is called as part of the main update loop.
         void HandleEvents();
-        bool InitSDL();
+
+        /// Initializes SDL, the renderer, and the window.
+        /// @internal
+        /// @note This is called as part of the initialization.
+        bool InitSDL() const;
+
+        /// Initializes SDL and sets the current scene.
+        /// @param _scene The initial scene to be updated and rendered.
+        void Init(Scene* _scene);
+
+        /// The main game loop. Handles events, rendering, and updates.
+        void Update();
+        
+        /// Cleans various parts of the engine, such as textures, the renderer, the window, and the current scene.
+        void Clean() const;
 
     public:
-        void Init(Scene* _scene);
-        void Update();
-        void Clean();
+        /// Starts the main loop given an initial scene.
+        /// @param _scene The initial scene to be updated and rendered.
+        /// @returns The error code.
+        int Run(Scene* _scene);
+
+        static float GetDeltaTime();
+
+        /// Sets the passed in scene to the current scene.
+        /// @param _scene The scene to become the current scene.
         static void SetScene(Scene* _scene);
+
+        /// Signals the main loop to stop running at the next update cycle.
+        /// Does not immediately exit the application.
         static void Quit();
     };
 }

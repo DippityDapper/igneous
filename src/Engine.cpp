@@ -12,7 +12,18 @@
 namespace Engine
 {
     bool Engine::running = true;
-    Scene* Engine::scene = nullptr;
+    Scene* Engine::currentScene = nullptr;
+    uint64_t Engine::lastTick = 0;
+    uint64_t Engine::currentTick = 0;
+    float Engine::deltaTime = 0;
+
+    int Engine::Run(Scene* _scene)
+    {
+        Init(_scene);
+        Update();
+        Clean();
+        return 0;
+    }
 
     void Engine::Init(Scene* _scene)
     {
@@ -25,7 +36,7 @@ namespace Engine
         SetScene(_scene);
     }
 
-    bool Engine::InitSDL()
+    bool Engine::InitSDL() const
     {
         if (!SDL_Init(SDL_INIT_VIDEO))
         {
@@ -51,8 +62,7 @@ namespace Engine
 
             if (sdlEvent.type == SDL_EVENT_QUIT)
             {
-                running = false;
-                return;
+                Quit();
             }
             if (sdlEvent.type == SDL_EVENT_WINDOW_RESIZED)
             {
@@ -63,8 +73,8 @@ namespace Engine
             Input::HandleEvents(sdlEvent);
             if (Camera::main)
                 Camera::main->HandleEventsInternal(sdlEvent);
-            if (scene)
-                scene->HandleEventsInternal(sdlEvent);
+            if (currentScene)
+                currentScene->HandleEventsInternal(sdlEvent);
         }
     }
 
@@ -80,28 +90,27 @@ namespace Engine
 
             if (Camera::main)
                 Camera::main->UpdateInternal(deltaTime);
-            if (scene)
-                scene->UpdateInternal(deltaTime);
+            if (currentScene)
+                currentScene->UpdateInternal(deltaTime);
 
             ResourceLoader::CleanExpired(10);
             Render();
         }
     }
 
-    void Engine::Render()
+    void Engine::Render() const
     {
         Renderer::BufferClear();
-        if (scene)
-            scene->RenderInternal();
+        if (currentScene)
+            currentScene->RenderInternal();
         renderer->Render();
     }
 
-    void Engine::Clean()
+    void Engine::Clean() const
     {
-        if (scene)
+        if (currentScene)
         {
-            scene->CleanInternal();
-            delete scene;
+            currentScene->CleanInternal();
         }
 
         renderer->Clean();
@@ -113,16 +122,20 @@ namespace Engine
         SDL_Quit();
     }
 
+    float Engine::GetDeltaTime()
+    {
+        return deltaTime;
+    }
+
     void Engine::SetScene(Scene* _scene)
     {
-        if (scene)
+        if (currentScene)
         {
-            scene->CleanInternal();
-            delete scene;
+            currentScene->CleanInternal();
         }
 
-        scene = _scene;
-        scene->InitInternal();
+        currentScene = _scene;
+        currentScene->InitInternal();
     }
 
     void Engine::Quit()
