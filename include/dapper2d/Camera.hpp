@@ -20,8 +20,6 @@ namespace Engine
         Vec2<float> previousPosition{0,0};
         float previousZoom = 1.0f;
 
-        bool panning = false;
-
         bool limitBounds = false;
 
         float limitLeft = 0;

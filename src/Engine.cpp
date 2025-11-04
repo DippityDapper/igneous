@@ -7,6 +7,7 @@
 #include "dapper2d/Window.hpp"
 #include "dapper2d/ResourceLoader.hpp"
 #include "dapper2d/Camera.hpp"
+#include "dapper2d/Input.hpp"
 
 namespace Engine
 {
@@ -58,6 +59,8 @@ namespace Engine
                 Window::viewport.x = sdlEvent.window.data1;
                 Window::viewport.y = sdlEvent.window.data2;
             }
+
+            Input::HandleEvents(sdlEvent);
             if (Camera::main)
                 Camera::main->HandleEventsInternal(sdlEvent);
             if (scene)
