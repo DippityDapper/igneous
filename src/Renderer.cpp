@@ -54,11 +54,13 @@ namespace Engine
 
         SDL_FRect dest;
 
-        int spriteW = sprite->tileW;
-        int spriteH = sprite->tileH;
+        int spriteW = sprite->atlasW;
+        int spriteH = sprite->atlasH;
+        float scaleX = sprite->scaleX;
+        float scaleY = sprite->scaleY;
 
-        dest.w = (float)spriteW * camera->zoom;
-        dest.h = (float)spriteH * camera->zoom;
+        dest.w = (float)spriteW * camera->zoom * scaleX;
+        dest.h = (float)spriteH * camera->zoom * scaleY;
 
         int viewportW = Window::viewport.x;
         int viewportH = Window::viewport.y;
@@ -66,14 +68,25 @@ namespace Engine
         if (viewportW <= 0 || viewportH <= 0)
             return;
 
-        dest.x = (position.x - camera->position.x) * camera->zoom + viewportW * 0.5f;
-        dest.y = (position.y - camera->position.y) * camera->zoom + viewportH * 0.5f;
+        float screenX = (position.x - camera->position.x) * camera->zoom + viewportW * 0.5f;
+        float screenY = (position.y - camera->position.y) * camera->zoom + viewportH * 0.5f;
+
+        if (sprite->centered)
+        {
+            dest.x = screenX - dest.w * 0.5f;
+            dest.y = screenY - dest.h * 0.5f;
+        }
+        else
+        {
+            dest.x = screenX;
+            dest.y = screenY;
+        }
 
         SDL_FRect src = sprite->GetSourceRect();
         SDL_RenderTexture(renderer, sprite->GetTexture(), &src, &dest);
     }
 
-    void Renderer::BufferAdd(Vec2<float> position, SDL_Texture* texture, Camera* camera)
+    void Renderer::BufferAdd(Vec2<float> position, SDL_Texture* texture, Camera* camera, bool centered)
     {
         if (!texture)
             return;
@@ -93,8 +106,19 @@ namespace Engine
         if (viewportW <= 0 || viewportH <= 0)
             return;
 
-        dest.x = (position.x - camera->position.x) * zoom + viewportW * 0.5f;
-        dest.y = (position.y - camera->position.y) * zoom + viewportH * 0.5f;
+        float screenX = (position.x - camera->position.x) * camera->zoom + viewportW * 0.5f;
+        float screenY = (position.y - camera->position.y) * camera->zoom + viewportH * 0.5f;
+
+        if (centered)
+        {
+            dest.x = screenX - dest.w * 0.5f;
+            dest.y = screenY - dest.h * 0.5f;
+        }
+        else
+        {
+            dest.x = screenX;
+            dest.y = screenY;
+        }
 
         SDL_RenderTexture(renderer, texture, nullptr, &dest);
     }
@@ -106,8 +130,13 @@ namespace Engine
 
         SDL_FRect dest;
 
-        dest.w = sprite->tileW;
-        dest.h = sprite->tileH;
+        int spriteW = sprite->atlasW;
+        int spriteH = sprite->atlasH;
+        float scaleX = sprite->scaleX;
+        float scaleY = sprite->scaleY;
+
+        dest.w = spriteW * scaleX;
+        dest.h = spriteH * scaleY;
 
         dest.x = position.x;
         dest.y = position.y;

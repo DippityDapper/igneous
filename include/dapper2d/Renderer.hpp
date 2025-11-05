@@ -47,7 +47,7 @@ namespace Engine
         /// @param texture The texture to draw.
         /// @param camera The camera to use when calculating the screen position for the rendered texture.
         /// If no camera is provided, the main camera will be used.
-        static void BufferAdd(Vec2<float> position, SDL_Texture* texture, Camera* camera);
+        static void BufferAdd(Vec2<float> position, SDL_Texture* texture, Camera* camera, bool centered = true);
 
         /// Adds a sprite's texture to the next draw pass.
         /// @param position The screen space position to draw the sprite.

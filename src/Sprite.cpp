@@ -6,38 +6,38 @@
 
 namespace Engine
 {
-    Sprite::Sprite(const std::string& texturePath)
-    {
-        texture = ResourceLoader::LoadTexture(texturePath);
-        if (texture)
-        {
-            SDL_GetTextureSize(texture.get(), &w, &h);
-            tileW = w;
-            tileH = h;
-        }
-    }
-
-    Sprite::Sprite(Sprite &sprite)
+    Sprite::Sprite(const Sprite& sprite)
     {
         texture = sprite.texture;
-        tileW = sprite.tileW;
-        tileH = sprite.tileH;
-        x = sprite.x;
-        y = sprite.y;
+        atlasW = sprite.atlasW;
+        atlasH = sprite.atlasH;
+        atlasX = sprite.atlasX;
+        atlasY = sprite.atlasY;
     }
 
-    Sprite::Sprite(const std::string& texturePath, float _w, float _h, int _x, int _y)
+    Sprite::Sprite(const std::string& filePath)
     {
-        texture = ResourceLoader::LoadTexture(texturePath);
+        texture = ResourceLoader::LoadTexture(filePath);
         if (texture)
         {
             SDL_GetTextureSize(texture.get(), &w, &h);
-            tileW = _w;
-            tileH = _h;
+            atlasW = w;
+            atlasH = h;
+        }
+    }
+
+    Sprite::Sprite(const std::string& filePath, float _w, float _h, int _x, int _y)
+    {
+        texture = ResourceLoader::LoadTexture(filePath);
+        if (texture)
+        {
+            SDL_GetTextureSize(texture.get(), &w, &h);
+            atlasW = _w;
+            atlasH = _h;
         }
 
-        x = _x;
-        y = _y;
+        atlasX = _x;
+        atlasY = _y;
     }
 
     SDL_Texture *Sprite::GetTexture()
@@ -49,11 +49,11 @@ namespace Engine
     {
         SDL_FRect src;
 
-        src.w = tileW;
-        src.h = tileH;
+        src.w = atlasW;
+        src.h = atlasH;
 
-        src.x = ((float)x * tileW);
-        src.y = ((float)y * tileH);
+        src.x = ((float)atlasX * atlasW);
+        src.y = ((float)atlasY * atlasH);
 
         return src;
     }

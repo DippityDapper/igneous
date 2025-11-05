@@ -12,7 +12,7 @@ namespace Engine
     /// HandleEvents()
     /// Update()
     /// Render()
-    /// Clean() // When a new scene is becoming the current scene
+    /// Clean() // When a new scene is set, the old scene is cleaned
     /// @endcode
     class Scene
     {
