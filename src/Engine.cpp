@@ -111,6 +111,7 @@ namespace Engine
         if (currentScene)
         {
             currentScene->CleanInternal();
+            delete currentScene;
         }
 
         renderer->Clean();
