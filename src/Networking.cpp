@@ -23,7 +23,7 @@ namespace Engine
     {
         if (enet_initialize() < 0)
         {
-            SDL_Log("Enet init failed: %s", SDL_GetError());
+            SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Enet init failed: %s", SDL_GetError());
             return false;
         }
 
@@ -37,7 +37,6 @@ namespace Engine
 
         running = true;
         networkThread = std::thread(NetworkLoop);
-        SDL_Log("Networking thread started.");
     }
 
     void Networking::StopNetworkingThread()
@@ -48,7 +47,6 @@ namespace Engine
         running = false;
         if (networkThread.joinable())
             networkThread.join();
-        SDL_Log("Networking thread stopped.");
     }
 
     void Networking::NetworkLoop()
@@ -68,7 +66,6 @@ namespace Engine
                         {
                         case ENET_EVENT_TYPE_CONNECT:
                             {
-                                SDL_Log("[Server] Client connected.");
                                 break;
                             }
                         case ENET_EVENT_TYPE_RECEIVE:
@@ -81,7 +78,6 @@ namespace Engine
                             }
                         case ENET_EVENT_TYPE_DISCONNECT:
                             {
-                                SDL_Log("[Server] Client disconnected.");
                                 break;
                             }
                         default:
@@ -98,7 +94,6 @@ namespace Engine
                         {
                         case ENET_EVENT_TYPE_CONNECT:
                             {
-                                SDL_Log("[Client] Connected to server!");
                                 break;
                             }
                         case ENET_EVENT_TYPE_RECEIVE:
@@ -111,7 +106,6 @@ namespace Engine
                             }
                         case ENET_EVENT_TYPE_DISCONNECT:
                             {
-                                SDL_Log("[Client] Disconnected from server.");
                                 break;
                             }
                         default:
@@ -165,7 +159,6 @@ namespace Engine
             return false;
         }
 
-        SDL_Log("Server created on port: %d", port);
         return true;
     }
 
@@ -192,11 +185,7 @@ namespace Engine
         }
 
         ENetEvent event;
-        if (enet_host_service(client, &event, 5000) > 0 && event.type == ENET_EVENT_TYPE_CONNECT)
-        {
-            SDL_Log("Connection to server succeeded!");
-        }
-        else
+        if (!(enet_host_service(client, &event, 5000) > 0 && event.type == ENET_EVENT_TYPE_CONNECT))
         {
             SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to connect to server.");
             enet_peer_reset(server);
