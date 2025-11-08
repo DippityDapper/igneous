@@ -16,10 +16,11 @@ namespace Engine
     /// Typical usage:
     /// @code
     /// auto engine = std::make_unique<Engine::Engine>();
-    /// auto scene  = std::make_unique<Game::World>();
-    /// return engine->Run(scene.get());
+    /// auto scene  = Game::World();
+    /// return engine->Run(scene);
     /// @endcode
     ///
+    /// Scenes are cleaned by the engine when a new scene is set.
     /// Only one `Engine` instance should exist at a time.
     class Engine
     {

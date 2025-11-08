@@ -68,7 +68,6 @@ namespace Engine
             return false;
         }
 
-        Networking::StartNetworkingThread();
         return true;
     }
 
@@ -155,6 +154,7 @@ namespace Engine
         if (currentScene)
         {
             currentScene->CleanInternal();
+            delete currentScene;
         }
 
         currentScene = _scene;
