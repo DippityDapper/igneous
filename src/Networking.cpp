@@ -9,7 +9,6 @@ namespace Engine
     ENetHost* Networking::host = nullptr;
     ENetHost* Networking::client = nullptr;
     ENetPeer* Networking::server = nullptr;
-    std::vector<ENetPeer*> Networking::peers{};
 
     std::thread Networking::networkThread;
     std::atomic<bool> Networking::running;
