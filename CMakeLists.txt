@@ -43,6 +43,10 @@ target_include_directories(dapper2d PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
+target_include_directories(dapper2d PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/libs/enet/include
+)
+
 target_link_libraries(dapper2d PUBLIC
         SDL3::SDL3
         SDL3_image::SDL3_image

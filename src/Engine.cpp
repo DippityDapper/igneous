@@ -8,6 +8,7 @@
 #include "dapper2d/ResourceLoader.hpp"
 #include "dapper2d/Camera.hpp"
 #include "dapper2d/Input.hpp"
+#include "dapper2d/Networking.hpp"
 
 namespace Engine
 {
@@ -33,6 +34,12 @@ namespace Engine
             return;
         }
 
+        if (!InitENet())
+        {
+            running = false;
+            return;
+        }
+
         SetScene(_scene);
     }
 
@@ -52,6 +59,19 @@ namespace Engine
 
         return true;
     }
+
+    bool Engine::InitENet() const
+    {
+        if (!Networking::Init())
+        {
+            SDL_Log("Network init failed: %s", SDL_GetError());
+            return false;
+        }
+
+        Networking::StartNetworkingThread();
+        return true;
+    }
+
 
     void Engine::HandleEvents()
     {
@@ -108,6 +128,8 @@ namespace Engine
 
     void Engine::Clean() const
     {
+        Networking::Clean();
+
         if (currentScene)
         {
             currentScene->CleanInternal();

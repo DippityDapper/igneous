@@ -17,6 +17,8 @@ namespace Engine
     class Scene
     {
     public:
+        virtual ~Scene() = default;
+
         /// Initializes the scene.
         /// @internal
         /// @note This is called internally within the Engine.

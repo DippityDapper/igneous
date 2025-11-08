@@ -44,19 +44,20 @@ namespace Engine
 
     private:
         /// Handles rendering.
-        /// @internal
-        /// @note This is called as part of the main update loop.
+        /// @note This is called as part of the Engine update loop.
         void Render() const;
 
         /// Handles SDL and ImGui events.
-        /// @internal
-        /// @note This is called as part of the main update loop.
+        /// @note This is called as part of the Engine update loop.
         void HandleEvents();
 
         /// Initializes SDL, the renderer, and the window.
-        /// @internal
-        /// @note This is called as part of the initialization.
+        /// @note This is called as part of the Engine initialization.
         bool InitSDL() const;
+
+        /// Initializes ENet.
+        /// @note This is called as part of the Engine initialization.
+        bool InitENet() const;
 
         /// Initializes SDL and sets the current scene.
         /// @param _scene The initial scene to be updated and rendered.
@@ -74,6 +75,8 @@ namespace Engine
         /// @returns The error code.
         int Run(Scene* _scene);
 
+        /// Gets the delta time from the last frame to the current frame.
+        /// @returns The delta time.
         static float GetDeltaTime();
 
         /// Sets the passed in scene to the current scene.
