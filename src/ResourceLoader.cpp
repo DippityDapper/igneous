@@ -9,7 +9,7 @@
 namespace Engine
 {
     std::unordered_map<int, std::weak_ptr<SDL_Texture>> ResourceLoader::textures{};
-    std::unordered_map<std::string, int> ResourceLoader::textureMap{};
+    std::unordered_map<std::string, int> ResourceLoader::texturePathLookup{};
     std::unordered_map<int, std::string> ResourceLoader::idToPath;
     SDL_ScaleMode ResourceLoader::scaleMode = SDL_SCALEMODE_LINEAR;
 
@@ -18,9 +18,9 @@ namespace Engine
         if (filePath.empty())
             return nullptr;
 
-        if (textureMap.contains(filePath))
+        if (texturePathLookup.contains(filePath))
         {
-            int id = textureMap[filePath];
+            int id = texturePathLookup[filePath];
             if (id >= 0 && id < (int)textures.size())
             {
                 if (auto existing = textures[id].lock())
@@ -51,7 +51,7 @@ namespace Engine
         if (textureId >= 0)
         {
             textures[textureId] = texture;
-            textureMap[filePath] = textureId;
+            texturePathLookup[filePath] = textureId;
             idToPath[textureId] = filePath;
 
             return texture;
@@ -94,7 +94,7 @@ namespace Engine
         {
             if (it->second.expired())
             {
-                textureMap.erase(idToPath[it->first]);
+                texturePathLookup.erase(idToPath[it->first]);
                 idToPath.erase(it->first);
                 it = textures.erase(it);
                 ++cleaned;

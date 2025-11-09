@@ -13,7 +13,6 @@ namespace Engine
     ENetHost* Networking::host = nullptr;
     ENetHost* Networking::client = nullptr;
     ENetPeer* Networking::server = nullptr;
-    SDL_Process* Networking::serverProcess;
 
     std::thread Networking::clientThread;
     std::atomic<bool> Networking::clientThreadRunning;
@@ -235,12 +234,12 @@ namespace Engine
         return clientIncomingMessages.Pop();
     }
 
-    bool Networking::CreateServer(const int port, const size_t peerCount, const bool localHostOnly, const size_t channelLimit, enet_uint32 incomingBandwidth, enet_uint32 outgoingBandwidth)
+    bool Networking::CreateServer(const int port, const size_t peerCount, const bool localOnly, const size_t channelLimit, enet_uint32 incomingBandwidth, enet_uint32 outgoingBandwidth)
     {
         ENetAddress address;
 
         address.port = port;
-        if (localHostOnly)
+        if (localOnly)
             enet_address_set_host_ip(&address, "127.0.0.1");
         else
             address.host = ENET_HOST_ANY;
@@ -255,50 +254,18 @@ namespace Engine
         return true;
     }
 
-    bool Networking::CreateServerProcess(const char* port, const char* worldName, const char* peerCount, bool localOnly)
+    bool Networking::StopServer()
     {
-        if (serverProcess)
+        if (!host)
         {
-            SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Server process already running.");
+            SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to stop server.");
             return false;
         }
 
-        std::string basePath = SDL_GetBasePath();
+        enet_host_destroy(host);
+        host = nullptr;
 
-        std::string exePath{basePath};
-
-#if defined(_WIN32)
-        exePath += "../server/server.exe";
-#else
-        exePath += "../server/server";
-#endif
-
-        if (!std::filesystem::exists(exePath))
-        {
-            SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Server executable not found: %s", exePath.c_str());
-            return false;
-        }
-
-        const char* localOnlyChar = localOnly ? "--local-only" : "";
-        const char* args[] = { exePath.c_str(), port, worldName, "--peer-count", peerCount, localOnlyChar, nullptr };
-
-        serverProcess = SDL_CreateProcess(args, false);
-        if (!serverProcess)
-        {
-            SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to create server process: %s.", SDL_GetError());
-            return false;
-        }
         return true;
-    }
-
-    void Networking::StopServerProcess()
-    {
-        if (serverProcess)
-        {
-            SDL_KillProcess(serverProcess, false);
-            SDL_WaitProcess(serverProcess, false, nullptr);
-            serverProcess = nullptr;
-        }
     }
 
     bool Networking::ConnectToServer(const char* ip, size_t port, enet_uint32 data)
@@ -314,6 +281,8 @@ namespace Engine
         if (!client)
         {
             SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to create client: %s.", SDL_GetError());
+            enet_host_destroy(client);
+            client = nullptr;
             return false;
         }
 
@@ -326,6 +295,8 @@ namespace Engine
         if (!server)
         {
             SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to create peer: %s.", SDL_GetError());
+            enet_host_destroy(client);
+            client = nullptr;
             return false;
         }
 
@@ -333,7 +304,9 @@ namespace Engine
         if (!(enet_host_service(client, &event, 5000) > 0 && event.type == ENET_EVENT_TYPE_CONNECT))
         {
             SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to connect to server.");
-            enet_peer_reset(server);
+            enet_host_destroy(client);
+            client = nullptr;
+            server = nullptr;
             return false;
         }
 
@@ -344,7 +317,7 @@ namespace Engine
     {
         if (!server && !client)
         {
-            SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to disconnect from server.");
+            SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Not Connected to any server.");
             return false;
         }
 
@@ -358,15 +331,17 @@ namespace Engine
 
     void Networking::Clean()
     {
-        StopClientThread();
-        StopServerThread();
+        if (clientThreadRunning)
+            StopClientThread();
 
-        StopServerProcess();
+        if (serverThreadRunning)
+            StopServerThread();
+
+        if (client || server)
+            DisconnectFromServer();
 
         if (host)
-            enet_host_destroy(host);
-        if (client)
-            enet_host_destroy(client);
+            StopServer();
 
         enet_deinitialize();
     }

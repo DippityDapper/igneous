@@ -9,24 +9,24 @@
 #include "dapper2d/Camera.hpp"
 #include "dapper2d/Input.hpp"
 #include "dapper2d/Networking.hpp"
+#include "dapper2d/Scenes.hpp"
 
 namespace Engine
 {
     bool Engine::running = true;
-    Scene* Engine::currentScene = nullptr;
     uint64_t Engine::lastTick = 0;
     uint64_t Engine::currentTick = 0;
     float Engine::deltaTime = 0;
 
-    int Engine::Run(Scene* _scene)
+    int Engine::Run()
     {
-        Init(_scene);
+        Init();
         Update();
         Clean();
         return 0;
     }
 
-    void Engine::Init(Scene* _scene)
+    void Engine::Init()
     {
         if (!InitSDL())
         {
@@ -37,10 +37,7 @@ namespace Engine
         if (!InitENet())
         {
             running = false;
-            return;
         }
-
-        SetScene(_scene);
     }
 
     bool Engine::InitSDL() const
@@ -92,8 +89,13 @@ namespace Engine
             Input::HandleEvents(sdlEvent);
             if (Camera::main)
                 Camera::main->HandleEventsInternal(sdlEvent);
-            if (currentScene)
-                currentScene->HandleEventsInternal(sdlEvent);
+            for (const auto& kvp : Scenes::loadedScenes)
+            {
+                if (kvp.second)
+                {
+                    kvp.second->HandleEventsInternal(sdlEvent);
+                }
+            }
         }
     }
 
@@ -101,14 +103,20 @@ namespace Engine
     {
         while (running)
         {
+            Scenes::LoadQueue();
             HandleEvents();
 
             lastTick = currentTick;
             currentTick = SDL_GetTicks();
             deltaTime = (float)(currentTick - lastTick) / 1000.0f;
 
-            if (currentScene)
-                currentScene->UpdateInternal(deltaTime);
+            for (const auto& kvp : Scenes::loadedScenes)
+            {
+                if (kvp.second)
+                {
+                    kvp.second->UpdateInternal(deltaTime);
+                }
+            }
             if (Camera::main)
                 Camera::main->UpdateInternal(deltaTime);
 
@@ -120,20 +128,20 @@ namespace Engine
     void Engine::Render() const
     {
         Renderer::BufferClear();
-        if (currentScene)
-            currentScene->RenderInternal();
+        for (const auto& kvp : Scenes::loadedScenes)
+        {
+            if (kvp.second)
+            {
+                kvp.second->RenderInternal();
+            }
+        }
         renderer->Render();
     }
 
     void Engine::Clean() const
     {
+        Scenes::Clean();
         Networking::Clean();
-
-        if (currentScene)
-        {
-            currentScene->CleanInternal();
-            delete currentScene;
-        }
 
         renderer->Clean();
         window->Clean();
@@ -147,18 +155,6 @@ namespace Engine
     float Engine::GetDeltaTime()
     {
         return deltaTime;
-    }
-
-    void Engine::SetScene(Scene* _scene)
-    {
-        if (currentScene)
-        {
-            currentScene->CleanInternal();
-            delete currentScene;
-        }
-
-        currentScene = _scene;
-        currentScene->InitInternal();
     }
 
     void Engine::Quit()

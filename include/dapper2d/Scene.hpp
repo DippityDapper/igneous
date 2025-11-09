@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 union SDL_Event;
 
@@ -16,6 +17,13 @@ namespace Engine
     /// @endcode
     class Scene
     {
+    public:
+        int id = -1;
+        std::string name{};
+
+        bool active = false;
+        bool singleton = false;
+
     public:
         virtual ~Scene() = default;
 

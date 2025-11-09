@@ -31,7 +31,7 @@ namespace Engine
         static std::unordered_map<int, std::weak_ptr<SDL_Texture>> textures;
 
         /// A map that tracks loaded texture file paths.
-        static std::unordered_map<std::string, int> textureMap;
+        static std::unordered_map<std::string, int> texturePathLookup;
 
         /// A utility map that converts a texture id to its file path.
         static std::unordered_map<int, std::string> idToPath;

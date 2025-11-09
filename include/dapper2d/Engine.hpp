@@ -27,9 +27,6 @@ namespace Engine
     private:
         static bool running;
 
-        /// The current scene. Only the current scene will be updated and rendered.
-        static Scene* currentScene;
-
         static uint64_t lastTick;
         static uint64_t currentTick;
         static float deltaTime;
@@ -61,8 +58,8 @@ namespace Engine
         bool InitENet() const;
 
         /// Initializes SDL and sets the current scene.
-        /// @param _scene The initial scene to be updated and rendered.
-        void Init(Scene* _scene);
+        /// @param scene The initial scene to be updated and rendered.
+        void Init();
 
         /// The main game loop. Handles events, rendering, and updates.
         void Update();
@@ -72,17 +69,13 @@ namespace Engine
 
     public:
         /// Starts the main loop given an initial scene.
-        /// @param _scene The initial scene to be updated and rendered.
+        /// @param scene The initial scene to be updated and rendered.
         /// @returns The error code.
-        int Run(Scene* _scene);
+        int Run();
 
         /// Gets the delta time from the last frame to the current frame.
         /// @returns The delta time.
         static float GetDeltaTime();
-
-        /// Sets the passed in scene to the current scene.
-        /// @param _scene The scene to become the current scene.
-        static void SetScene(Scene* _scene);
 
         /// Signals the main loop to stop running at the next update cycle.
         /// Does not immediately exit the application.

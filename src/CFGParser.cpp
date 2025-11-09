@@ -17,7 +17,7 @@ namespace Engine
 
         if (!configFile.is_open())
         {
-            SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to load server config file");
+            SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to open config file : %s", filePath.c_str());
             return;
         }
 

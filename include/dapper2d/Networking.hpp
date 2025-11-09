@@ -10,6 +10,11 @@
 
 struct SDL_Process;
 
+namespace Server
+{
+    class Server;
+}
+
 namespace Engine
 {
     /// Represents a single network message exchanged between peers.
@@ -65,8 +70,6 @@ namespace Engine
         /// The host object for the client. Used to talk with the server from the client.
         static ENetPeer* server;
 
-        static SDL_Process* serverProcess;
-
     public:
         /// Initializes ENet.
         /// @note This is called as part of the Engine initialization.
@@ -99,22 +102,16 @@ namespace Engine
         /// Creates a server for clients to connect to.
         /// @param port The port to host the server on.
         /// @param peerCount The max number of peers that can connect to the server.
-        /// @param localHostOnly whether to host over LAN or WAN.
+        /// @param localOnly whether to host over LAN or WAN.
         /// @param channelLimit The maximum number of channels allowed.
         /// @param incomingBandwidth Downstream bandwidth of the host in bytes/second.
         /// @param outgoingBandwidth Upstream bandwidth of the host in bytes/second.
         /// @return True if the server was successfully created. False otherwise.
-        static bool CreateServer(int port, size_t peerCount, bool localHostOnly, size_t channelLimit=0, enet_uint32 incomingBandwidth=0, enet_uint32 outgoingBandwidth=0);
+        static bool CreateServer(int port, size_t peerCount, bool localOnly, size_t channelLimit=0, enet_uint32 incomingBandwidth=0, enet_uint32 outgoingBandwidth=0);
 
-        /// Creates a separate server process.
-        /// @param port  The port to host the server on.
-        /// @param peerCount The max number of peers that can connect to the server.
-        /// @param localOnly whether to host over LAN or WAN.
-        /// @return True if the server process was successfully created. False otherwise.
-        static bool CreateServerProcess(const char* port, const char* worldName, const char* peerCount, bool localOnly);
-
-        /// Kills the server process.
-        static void StopServerProcess();
+        /// Kills the server.
+        /// @return True if the server was successfully stopped. False otherwise.
+        static bool StopServer();
 
         /// Connect to a server.
         /// @param ip The ip of the server.
