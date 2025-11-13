@@ -1,39 +1,29 @@
 #include "dapper2d/Scenes.hpp"
 
-#include <random>
-
 #include "SDL3/SDL_log.h"
 
 #include "dapper2d/Scene.hpp"
 
 namespace Engine
 {
-    std::unordered_map<int, Scene*> Scenes::loadedScenes{};
-    std::queue<Scene*> Scenes::queuedScenes{};
-
-    std::unordered_map<int, Scene*> Scenes::scenes{};
-    std::unordered_map<std::string, int> Scenes::sceneNameLookup{};
-    std::unordered_map<int, std::string> Scenes::idToName{};
-
     Scene* Scenes::CreateScene(Scene* scene, const std::string& name)
     {
-        std::mt19937 gen(std::random_device{}());
-        int sceneId = -1;
-        do
+        if (name.empty())
         {
-            std::uniform_int_distribution<> sceneIdDist(0, INT32_MAX);
-            sceneId = sceneIdDist(gen);
-        } while (scenes.contains(sceneId));
+            SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Scene name not set.");
+            return nullptr;
+        }
+        uint32_t sceneId = nextSceneId++;
 
         scene->name = name;
         scene->id = sceneId;
 
         scenes.emplace(sceneId, scene);
         sceneNameLookup.emplace(name, sceneId);
-        idToName.emplace(sceneId, name);
+        sceneIdToName.emplace(sceneId, name);
 
         if (loadedScenes.empty())
-            queuedScenes.push(scene);
+            queuedLoadScenes.push(scene);
 
         return scene;
     }
@@ -66,17 +56,24 @@ namespace Engine
         }
 
         Scene* scene = scenes[id];
-        scene->CleanInternal();
-        scene->active = false;
+        queueRemoveScenes.push(scene);
 
-        scenes.erase(id);
-        sceneNameLookup.erase(name);
-        idToName.erase(id);
+        return true;
+    }
 
-        if (loadedScenes.contains(id))
-            loadedScenes.erase(id);
+    bool Scenes::RemoveAllScenes()
+    {
+        std::vector<Scene*> scenesToRemove;
+        scenesToRemove.reserve(scenes.size());
 
-        delete scene;
+        for (const auto &kvp : scenes)
+        {
+            if (!kvp.second->singleton)
+                scenesToRemove.push_back(kvp.second);
+        }
+
+        for (const auto& scene : scenesToRemove)
+            queueRemoveScenes.push(scene);
 
         return true;
     }
@@ -84,7 +81,7 @@ namespace Engine
     bool Scenes::LoadScene(const std::string& name, bool unloadAll)
     {
         if (unloadAll)
-            UnloadAll();
+            UnloadAllScenes();
 
         if (!sceneNameLookup.contains(name))
         {
@@ -92,7 +89,7 @@ namespace Engine
             return false;
         }
 
-        const int id = sceneNameLookup[name];
+        const uint32_t id = sceneNameLookup[name];
         if (!scenes.contains(id))
         {
             SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Scene '%s' does not exist.", name.c_str());
@@ -106,14 +103,14 @@ namespace Engine
         }
 
         Scene* scene = scenes[id];
-        queuedScenes.push(scene);
+        queuedLoadScenes.push(scene);
         return true;
     }
 
     bool Scenes::LoadScene(Scene* scene, bool unloadAll)
     {
         if (unloadAll)
-            UnloadAll();
+            UnloadAllScenes();
 
         if (!sceneNameLookup.contains(scene->name))
         {
@@ -121,7 +118,7 @@ namespace Engine
             return false;
         }
 
-        const int id = scene->id;
+        const uint32_t id = scene->id;
         if (!scenes.contains(id))
         {
             SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Scene '%s' does not exist.", scene->name.c_str());
@@ -134,7 +131,7 @@ namespace Engine
             return false;
         }
 
-        queuedScenes.push(scene);
+        queuedLoadScenes.push(scene);
         return true;
     }
 
@@ -146,7 +143,7 @@ namespace Engine
             return false;
         }
 
-        const int id = sceneNameLookup[name];
+        const uint32_t id = sceneNameLookup[name];
         if (!scenes.contains(id))
         {
             SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Scene '%s' does not exist.", name.c_str());
@@ -160,46 +157,24 @@ namespace Engine
         }
 
         Scene* scene = scenes[id];
-        scene->CleanInternal();
-        scene->active = false;
-        loadedScenes.erase(id);
+        queuedUnloadScenes.push(scene);
 
         return true;
     }
 
-    void Scenes::UnloadAll()
+    void Scenes::UnloadAllScenes()
     {
-        int queueSize = queuedScenes.size();
-        for (int i = 0; i < queueSize; i++)
-        {
-            Scene* queuedScene = queuedScenes.front();
-            queuedScenes.pop();
-            if (queuedScene->singleton)
-            {
-                queuedScenes.push(queuedScene);
-                continue;
-            }
-            queuedScene->CleanInternal();
-            queuedScene->active = false;
-        }
+        std::vector<Scene*> scenesToUnload;
+        scenesToUnload.reserve(loadedScenes.size());
 
-        std::vector<int> scenesToRemove;
-        scenesToRemove.reserve(loadedScenes.size());
-
-        for (const auto &kvp : loadedScenes)
+        for (const auto& kvp : loadedScenes)
         {
             if (!kvp.second->singleton)
-            {
-                kvp.second->CleanInternal();
-                kvp.second->active = false;
-                scenesToRemove.push_back(kvp.first);
-            }
+                scenesToUnload.push_back(kvp.second);
         }
 
-        for (const auto &key : scenesToRemove)
-        {
-            loadedScenes.erase(key);
-        }
+        for (const auto& scene : scenesToUnload)
+            queuedUnloadScenes.push(scene);
     }
 
     bool Scenes::SceneExists(const std::string& name)
@@ -207,23 +182,68 @@ namespace Engine
         if (!sceneNameLookup.contains(name))
             return false;
 
-        const int id = sceneNameLookup[name];
+        const uint32_t id = sceneNameLookup[name];
         if (!scenes.contains(id))
             return false;
 
         return true;
     }
 
-    void Scenes::LoadQueue()
+    void Scenes::RunLoadQueue()
     {
-        int queueSize = queuedScenes.size();
+        int queueSize = queuedLoadScenes.size();
         for (int i = 0; i < queueSize; i++)
         {
-            Scene* scene = queuedScenes.front();
+            Scene* scene = queuedLoadScenes.front();
+            queuedLoadScenes.pop();
+
             scene->active = true;
             scene->InitInternal();
-            queuedScenes.pop();
             loadedScenes.emplace(scene->id, scene);
+        }
+    }
+
+    void Scenes::RunUnloadQueue()
+    {
+        int queueSize = queuedUnloadScenes.size();
+        for (int i = 0; i < queueSize; i++)
+        {
+            Scene* scene = queuedUnloadScenes.front();
+            queuedUnloadScenes.pop();
+
+            scene->active = false;
+            scene->CleanInternal();
+            loadedScenes.erase(scene->id);
+        }
+    }
+
+    void Scenes::RunRemoveQueue()
+    {
+        int queueSize = queueRemoveScenes.size();
+        for (int i = 0; i < queueSize; i++)
+        {
+            Scene* scene = queueRemoveScenes.front();
+            queueRemoveScenes.pop();
+
+            if (scene->active)
+            {
+                queueRemoveScenes.push(scene);
+                scene->active = false;
+                continue;
+            }
+            scene->active = false;
+            scene->CleanInternal();
+
+            if (scenes.contains(scene->id))
+                scenes.erase(scene->id);
+            if (sceneNameLookup.contains(scene->name))
+                sceneNameLookup.erase(scene->name);
+            if (sceneIdToName.contains(scene->id))
+                sceneIdToName.erase(scene->id);
+            if (loadedScenes.contains(scene->id))
+                loadedScenes.erase(scene->id);
+
+            delete scene;
         }
     }
 
@@ -239,6 +259,6 @@ namespace Engine
         }
         scenes.clear();
         sceneNameLookup.clear();
-        idToName.clear();
+        sceneIdToName.clear();
     }
 }

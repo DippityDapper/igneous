@@ -90,7 +90,28 @@ namespace Engine
         try
         {
             uint32_t num = std::stoul(val);
-            return static_cast<uint32_t>(num);
+            return num;
+        }
+        catch (const std::invalid_argument&)
+        {
+            SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Config Parser could not parse int for key %s in %s", val.c_str(), configName.c_str());
+            return 0;
+        }
+    }
+
+    uint32_t CFGParser::GetUInt16(const std::string& configName, const std::string& key)
+    {
+        if (!configs.contains(configName))
+            throw std::runtime_error("Configs does not contain the config " + configName);
+        if (!configs[configName].contains(key))
+            throw std::runtime_error("Config " + configName + " does not contain the key " + key);
+
+        std::string val = configs[configName][key];
+
+        try
+        {
+            uint32_t num = std::stoul(val);
+            return static_cast<uint16_t>(num);
         }
         catch (const std::invalid_argument&)
         {

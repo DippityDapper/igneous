@@ -103,7 +103,9 @@ namespace Engine
     {
         while (running)
         {
-            Scenes::LoadQueue();
+            Scenes::RunRemoveQueue();
+            Scenes::RunUnloadQueue();
+            Scenes::RunLoadQueue();
             HandleEvents();
 
             lastTick = currentTick;

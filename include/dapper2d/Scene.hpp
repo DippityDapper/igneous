@@ -1,4 +1,6 @@
 #pragma once
+
+#include <cstdint>
 #include <string>
 
 union SDL_Event;
@@ -18,7 +20,7 @@ namespace Engine
     class Scene
     {
     public:
-        int id = -1;
+        uint32_t id = 0;
         std::string name{};
 
         bool active = false;
@@ -64,11 +66,18 @@ namespace Engine
         /// A virtual function for rendering scene components.
         virtual void Render(){};
 
-        /// A virtual function that cleans a scene and all of it's components.
-        virtual void Clean(){};
-
         /// A virtual function that handles events.
         /// @param event The event being handled.
         virtual void HandleEvents(SDL_Event& event){};
+
+        /// A virtual function that cleans a scene and all of it's components.
+        virtual void Clean(){};
+
+    public:
+        // void Init() override;
+        // void Update(float delta) override;
+        // void Render() override;
+        // void HandleEvents(SDL_Event& event) override;
+        // void Clean() override;
     };
 }

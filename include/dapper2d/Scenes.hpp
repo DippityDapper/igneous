@@ -12,27 +12,37 @@ namespace Engine
     class Scenes
     {
     private:
+        inline static uint32_t nextSceneId = 1;
+
         /// A map of all created scenes.
-        static std::unordered_map<int, Scene*> scenes;
+        inline static std::unordered_map<uint32_t, Scene*> scenes{};
 
         /// A helper map to find a scene given a name.
-        static std::unordered_map<std::string, int> sceneNameLookup;
+        inline static std::unordered_map<std::string, uint32_t> sceneNameLookup{};
 
         /// A helper map that finds the name of a scene from its id.
-        static std::unordered_map<int, std::string> idToName;
+        inline static std::unordered_map<uint32_t, std::string> sceneIdToName{};
 
     public:
         /// A list of the processing scenes.
-        static std::unordered_map<int, Scene*> loadedScenes;
+        inline static std::unordered_map<uint32_t, Scene*> loadedScenes{};
 
         /// A queue of scenes ready to be loaded.
-        static std::queue<Scene*> queuedScenes;
+        inline static std::queue<Scene*> queuedLoadScenes{};
+
+        /// A queue of scenes ready to be unloaded.
+        inline static std::queue<Scene*> queuedUnloadScenes{};
+
+        /// A queue of scenes ready to be deleted.
+        inline static std::queue<Scene*> queueRemoveScenes{};
 
     public:
         Scenes() = delete;
         Scenes(const Scenes&) = delete;
 
-        static void LoadQueue();
+        static void RunLoadQueue();
+        static void RunUnloadQueue();
+        static void RunRemoveQueue();
         static void Clean();
 
         /// Creates a scene.
@@ -44,6 +54,9 @@ namespace Engine
         /// Removes a scene.
         static bool RemoveScene(const std::string& name);
 
+        /// Removes all scenes from memory. Excludes singleton scenes.
+        static bool RemoveAllScenes();
+
         /// Add a scene to the processing scenes queue given its name.
         static bool LoadScene(const std::string& name, bool unloadAll=true);
 
@@ -53,7 +66,7 @@ namespace Engine
         /// Unloads a scene from processing.
         static bool UnloadScene(const std::string& name);
 
-        static void UnloadAll();
+        static void UnloadAllScenes();
 
         static bool SceneExists(const std::string& name);
     };

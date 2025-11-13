@@ -47,6 +47,12 @@ namespace Engine
         /// @returns The config value as a uint32.
         static uint32_t GetUInt32(const std::string& configName, const std::string& key);
 
+        /// Gets the value of a config as a uint16.
+        /// @param configName The reference string of the config file.
+        /// @param key The config to obtain the value of.
+        /// @returns The config value as a uint16.
+        static uint32_t GetUInt16(const std::string& configName, const std::string& key);
+
         /// Gets the value of a config as a bool.
         /// @param configName The reference string of the config file.
         /// @param key The config to obtain the value of.
