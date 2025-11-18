@@ -69,6 +69,11 @@ namespace Engine
             return x == rhs.x && y == rhs.y;
         }
 
+        bool operator!=(const Vec2<float>& vec2) const
+        {
+            return x != vec2.x || y != vec2.y;
+        }
+
         bool operator<(const Vec2& rhs) const
         {
             return (x < rhs.x) || (x == rhs.x && y < rhs.y);
