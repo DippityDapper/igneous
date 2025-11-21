@@ -8,8 +8,8 @@
 #include "dapper2d/ResourceLoader.hpp"
 #include "dapper2d/Camera.hpp"
 #include "dapper2d/Input.hpp"
-#include "dapper2d/Networking.hpp"
 #include "dapper2d/Scenes.hpp"
+#include "enet/enet.h"
 
 namespace Engine
 {
@@ -59,7 +59,7 @@ namespace Engine
 
     bool Engine::InitENet() const
     {
-        if (!Networking::Init())
+        if (enet_initialize() < 0)
         {
             SDL_Log("Network init failed: %s", SDL_GetError());
             return false;
@@ -143,7 +143,6 @@ namespace Engine
     void Engine::Clean() const
     {
         Scenes::Clean();
-        Networking::Clean();
 
         renderer->Clean();
         window->Clean();
