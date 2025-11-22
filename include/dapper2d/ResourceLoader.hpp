@@ -3,9 +3,13 @@
 #include <unordered_map>
 #include <string>
 #include <memory>
-#include <vector>
 
-#include "SDL3/SDL.h"
+#include "SDL3_mixer/SDL_mixer.h"
+
+namespace Engine
+{
+    class AudioStream;
+}
 
 namespace Engine
 {
@@ -28,16 +32,34 @@ namespace Engine
     {
     private:
         /// A map of all loaded and created textures. A unique id is used to index into the map.
-        static std::unordered_map<int, std::weak_ptr<SDL_Texture>> textures;
+        static inline std::unordered_map<int, std::weak_ptr<SDL_Texture>> textures{};
 
         /// A map that tracks loaded texture file paths.
-        static std::unordered_map<std::string, int> texturePathLookup;
+        static inline std::unordered_map<std::string, int> texturePathLookup{};
 
         /// A utility map that converts a texture id to its file path.
-        static std::unordered_map<int, std::string> idToPath;
+        static inline std::unordered_map<int, std::string> textureIdToPath{};
 
         /// The scale mode to use when loading or creating textures scale, ie nearest, linear, or pixel art
-        static SDL_ScaleMode scaleMode;
+        static inline SDL_ScaleMode scaleMode = SDL_SCALEMODE_LINEAR;
+
+
+
+        static inline std::unordered_map<int, std::weak_ptr<AudioStream>> sounds{};
+
+        static inline std::unordered_map<std::string, int> soundPathLookup{};
+
+        static inline std::unordered_map<int, std::string> soundIdToPath{};
+
+    public:
+        static inline MIX_Mixer* mixer = nullptr;
+
+        static inline uint8_t trackCount = 16;
+
+        static inline std::unordered_map<MIX_Track*, bool> tracks{};
+
+    public:
+        static void Clean();
 
     public:
         ResourceLoader(const ResourceLoader& other) = delete;
@@ -64,5 +86,9 @@ namespace Engine
         /// Sets the scale mode of loaded textures.
         /// @param _scaleMode The SDL scale mode.
         static void SetScaleMode(SDL_ScaleMode _scaleMode);
+
+        static std::shared_ptr<AudioStream> LoadSound(const std::string& filePath, SDL_PropertiesID properties);
+
+        static MIX_Mixer* GetMixer();
     };
 }

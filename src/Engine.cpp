@@ -1,6 +1,8 @@
 #include "dapper2d/Engine.hpp"
 
 #include "imgui_impl_sdl3.h"
+#include "enet/enet.h"
+#include "SDL3_mixer/SDL_mixer.h"
 
 #include "dapper2d/Scene.hpp"
 #include "dapper2d/Renderer.hpp"
@@ -9,7 +11,7 @@
 #include "dapper2d/Camera.hpp"
 #include "dapper2d/Input.hpp"
 #include "dapper2d/Scenes.hpp"
-#include "enet/enet.h"
+
 
 namespace Engine
 {
@@ -42,9 +44,15 @@ namespace Engine
 
     bool Engine::InitSDL() const
     {
-        if (!SDL_Init(SDL_INIT_VIDEO))
+        if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO))
         {
             SDL_Log("SDL init failed: %s", SDL_GetError());
+            return false;
+        }
+
+        if (!MIX_Init())
+        {
+            SDL_Log("MIX init failed: %s", SDL_GetError());
             return false;
         }
 
@@ -143,6 +151,7 @@ namespace Engine
     void Engine::Clean() const
     {
         Scenes::Clean();
+        ResourceLoader::Clean();
 
         renderer->Clean();
         window->Clean();

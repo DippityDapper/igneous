@@ -9,6 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_subdirectory(libs/SDL3)
 add_subdirectory(libs/SDL3_image)
 add_subdirectory(libs/SQLiteCpp)
+add_subdirectory(libs/SDL3_mixer)
 add_subdirectory(libs/enet)
 
 set(IMGUI_SRC
@@ -50,6 +51,7 @@ target_include_directories(dapper2d PUBLIC
 target_link_libraries(dapper2d PUBLIC
         SDL3::SDL3
         SDL3_image::SDL3_image
+        SDL3_mixer::SDL3_mixer
         SQLiteCpp
         imgui
         enet
