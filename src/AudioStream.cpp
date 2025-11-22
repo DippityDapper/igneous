@@ -15,7 +15,7 @@ namespace Engine
         MIX_DestroyAudio(stream);
     }
 
-    void AudioStream::Play()
+    void AudioStream::Play(float gain)
     {
         MIX_Track* available = nullptr;
         for (const auto& kvp : ResourceLoader::tracks)
@@ -46,7 +46,11 @@ namespace Engine
         nullptr
         );
 
+        if (gain > 10.0f)
+            gain = 10.0f;
+
         MIX_SetTrackAudio(available, stream);
+        MIX_SetTrackGain(available, gain);
         MIX_PlayTrack(available, properties);
     }
 

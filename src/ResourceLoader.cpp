@@ -163,7 +163,7 @@ namespace Engine
         MIX_Audio* stream = MIX_LoadAudio(nullptr, filePath.c_str(), true);
         if (!stream)
         {
-            SDL_Log("Failed to load audio steam: %s : %s", filePath.c_str(), SDL_GetError());
+            SDL_Log("Failed to load audio stream: %s : %s", filePath.c_str(), SDL_GetError());
             return nullptr;
         }
 

@@ -14,7 +14,7 @@ namespace Engine
         AudioStream(MIX_Audio* _stream, SDL_PropertiesID _properties);
         ~AudioStream();
 
-        void Play();
+        void Play(float gain);
         void SetProperties(SDL_PropertiesID _properties);
     };
 }
