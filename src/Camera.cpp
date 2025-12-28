@@ -1,7 +1,7 @@
-#include "dapper2d/Camera.hpp"
+#include "igneous/Camera.hpp"
 
 #include "SDL3/SDL.h"
-#include "dapper2d/Window.hpp"
+#include "igneous/Window.hpp"
 
 namespace Engine
 {

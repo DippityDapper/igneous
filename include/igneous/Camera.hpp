@@ -1,6 +1,6 @@
 #pragma once
 
-#include "dapper2d/Vec2.hpp"
+#include "igneous/Vec2.hpp"
 
 union SDL_Event;
 

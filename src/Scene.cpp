@@ -1,4 +1,4 @@
-#include "dapper2d/Scene.hpp"
+#include "igneous/Scene.hpp"
 
 #include "SDL3/SDL.h"
 

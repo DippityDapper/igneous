@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.30)
-project(dapper2d)
+project(igneous)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -33,22 +33,22 @@ target_link_libraries(imgui PRIVATE SDL3::SDL3)
 # --- Engine Files ---
 
 file(GLOB_RECURSE ENGINE_SOURCE_FILES "src/*.cpp")
-file(GLOB_RECURSE ENGINE_HEADER_FILES "include/dapper2d/*.hpp")
+file(GLOB_RECURSE ENGINE_HEADER_FILES "include/igneous/*.hpp")
 
-add_library(dapper2d STATIC
+add_library(igneous STATIC
         ${ENGINE_SOURCE_FILES}
         ${ENGINE_HEADER_FILES}
 )
 
-target_include_directories(dapper2d PUBLIC
+target_include_directories(igneous PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_include_directories(dapper2d PUBLIC
+target_include_directories(igneous PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/libs/enet/include
 )
 
-target_link_libraries(dapper2d PUBLIC
+target_link_libraries(igneous PUBLIC
         SDL3::SDL3
         SDL3_image::SDL3_image
         SDL3_mixer::SDL3_mixer

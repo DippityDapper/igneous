@@ -1,8 +1,8 @@
-#include "dapper2d/Scenes.hpp"
+#include "igneous/Scenes.hpp"
 
 #include "SDL3/SDL_log.h"
 
-#include "dapper2d/Scene.hpp"
+#include "igneous/Scene.hpp"
 
 namespace Engine
 {

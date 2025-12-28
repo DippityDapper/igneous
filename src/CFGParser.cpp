@@ -1,4 +1,4 @@
-#include "dapper2d/CFGParser.hpp"
+#include "igneous/CFGParser.hpp"
 
 #include <sstream>
 #include <fstream>

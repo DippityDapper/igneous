@@ -1,16 +1,16 @@
-#include "dapper2d/Engine.hpp"
+#include "igneous/Engine.hpp"
 
 #include "imgui_impl_sdl3.h"
 #include "enet/enet.h"
 #include "SDL3_mixer/SDL_mixer.h"
 
-#include "dapper2d/Scene.hpp"
-#include "dapper2d/Renderer.hpp"
-#include "dapper2d/Window.hpp"
-#include "dapper2d/ResourceLoader.hpp"
-#include "dapper2d/Camera.hpp"
-#include "dapper2d/Input.hpp"
-#include "dapper2d/Scenes.hpp"
+#include "igneous/Scene.hpp"
+#include "igneous/Renderer.hpp"
+#include "igneous/Window.hpp"
+#include "igneous/ResourceLoader.hpp"
+#include "igneous/Camera.hpp"
+#include "igneous/Input.hpp"
+#include "igneous/Scenes.hpp"
 
 
 namespace Engine
@@ -152,6 +152,7 @@ namespace Engine
     {
         Scenes::Clean();
         ResourceLoader::Clean();
+        enet_deinitialize();
 
         renderer->Clean();
         window->Clean();

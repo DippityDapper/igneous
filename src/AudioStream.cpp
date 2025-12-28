@@ -1,6 +1,6 @@
-#include "dapper2d/AudioStream.hpp"
+#include "igneous/AudioStream.hpp"
 
-#include "dapper2d/ResourceLoader.hpp"
+#include "igneous/ResourceLoader.hpp"
 
 namespace Engine
 {

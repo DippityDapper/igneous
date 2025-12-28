@@ -1,11 +1,11 @@
-#include "dapper2d/ResourceLoader.hpp"
+#include "igneous/ResourceLoader.hpp"
 
 #include <random>
 
-#include "dapper2d/AudioStream.hpp"
+#include "igneous/AudioStream.hpp"
 #include "SDL3_image/SDL_image.h"
 
-#include "dapper2d/Renderer.hpp"
+#include "igneous/Renderer.hpp"
 
 namespace Engine
 {
