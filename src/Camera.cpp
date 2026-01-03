@@ -49,12 +49,17 @@ namespace Engine
                 BoundsCheck();
             }
         }
+        if (event.type == SDL_EVENT_MOUSE_MOTION)
+        {
+            mouseScreenPosition.x = event.motion.x;
+            mouseScreenPosition.y = event.motion.y;
+        }
         HandleEvents(event);
     }
 
     bool Camera::IsWithinBounds(Vec2<float> _position)
     {
-        Vec2<float> offset = (Vec2<float>)Engine::Window::viewport / 2.0f / zoom;
+        Vec2<float> offset = (Vec2<float>)Window::viewport / 2.0f / zoom;
         if (_position.x < limitLeft + offset.x)
             return false;
         if (_position.x > limitRight - offset.x)
@@ -75,7 +80,7 @@ namespace Engine
     {
         Vec2<float> newPos = targetPosition;
 
-        Vec2<float> offset = (Vec2<float>)Engine::Window::viewport / 2.0f / targetZoom;
+        Vec2<float> offset = (Vec2<float>)Window::viewport / 2.0f / targetZoom;
         if (targetPosition.x < limitLeft + offset.x)
             newPos.x = limitLeft + offset.x;
         if (targetPosition.x > limitRight - offset.x)
@@ -92,13 +97,32 @@ namespace Engine
         float worldWidth  = limitRight - limitLeft;
         float worldHeight = limitBottom - limitTop;
 
-        float maxZoomOutX = (float)Engine::Window::viewport.x / worldWidth;
-        float maxZoomOutY = (float)Engine::Window::viewport.y / worldHeight;
+        float maxZoomOutX = (float)Window::viewport.x / worldWidth;
+        float maxZoomOutY = (float)Window::viewport.y / worldHeight;
         float maxAllowedZoomOut = std::max(maxZoomOutX, maxZoomOutY);
 
         if (targetZoom < maxAllowedZoomOut)
             return maxAllowedZoomOut;
         return targetZoom;
+    }
+
+    Vec2<float> Camera::GetMouseScreenPosition()
+    {
+        return mouseScreenPosition;
+    }
+
+    Vec2<float> Camera::GetMouseGlobalPosition()
+    {
+        float viewportX = (float)Window::viewport.x;
+        float viewportY = (float)Window::viewport.y;
+
+        float screenOffsetX = viewportX / 2.0f;
+        float screenOffsetY = viewportY / 2.0f;
+
+        float mouseGlobalX = (mouseScreenPosition.x - screenOffsetX) / zoom + position.x;
+        float mouseGlobalY = (mouseScreenPosition.y - screenOffsetY) / zoom + position.y;
+
+        return {mouseGlobalX, mouseGlobalY};
     }
 
     void Camera::BoundsCheck()

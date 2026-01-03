@@ -3,6 +3,13 @@
 #include <string>
 #include <memory>
 
+#include "igneous/Vec2.hpp"
+
+namespace Engine
+{
+    class Camera;
+}
+
 struct SDL_Texture;
 struct SDL_FRect;
 
@@ -16,7 +23,13 @@ namespace Engine
         /// @note The texture's lifetime is handled by the ResourceLoader.
         std::shared_ptr<SDL_Texture> texture = nullptr;
 
+        int zIndex = 0;
+
     public:
+        int id = 0;
+
+        Vec2<float>& position;
+
         /// The width of the entire texture. In pixels.
         float w = 0;
 
@@ -52,7 +65,7 @@ namespace Engine
         /// The atlas width and height are set to the texture size, meaning the whole texture will be rendered.
         /// The atlas x and y position are set to 0.
         /// @param filePath The file path to the texture.
-        explicit Sprite(const std::string& filePath);
+        Sprite(Vec2<float>& pos, const std::string& filePath);
 
         /// Creates a sprite from a file path.
         /// @param filePath The file path to the texture.
@@ -60,14 +73,26 @@ namespace Engine
         /// @param _h The atlas height to sample from the main texture.
         /// @param _x The atlas x position to sample from the main texture.
         /// @param _y The atlas y position to sample from the main texture.
-        Sprite(const std::string& filePath, float _w, float _h, int _x, int _y);
+        Sprite(Vec2<float>& pos, const std::string& filePath, float _w, float _h, int _x, int _y);
+
+        ~Sprite();
+
+        bool SetTexture(const std::string& filePath);
 
         /// Gets a pointer to the SDL texture.
         /// @returns A pointer to the SDL texture.
         SDL_Texture* GetTexture();
 
+        void SetAtlas(float w, float h, int x, int y);
+
+        void SetZIndex(int z);
+
+        int GetZIndex();
+
         /// Gets the source rect of the texture.
         /// @returns The source rect of the texture.
         SDL_FRect GetSourceRect() const;
+
+        bool IsMouseWithin(Camera* camera = nullptr);
     };
 }

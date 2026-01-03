@@ -1,6 +1,7 @@
 #include "igneous/ResourceLoader.hpp"
 
 #include <random>
+#include <ranges>
 
 #include "igneous/AudioStream.hpp"
 #include "SDL3_image/SDL_image.h"
@@ -17,6 +18,54 @@ namespace Engine
         }
         MIX_DestroyMixer(mixer);
         MIX_Quit();
+    }
+
+    bool ResourceLoader::RegisterSprite(Sprite* sprite)
+    {
+        if (spriteIterators.contains(sprite->id))
+            return false;
+
+        std::mt19937 gen(std::random_device{}());
+
+        int spriteId;
+        do
+        {
+            std::uniform_int_distribution<> spriteIdDist(0, INT32_MAX);
+            spriteId = spriteIdDist(gen);
+        } while (spriteIterators.contains(spriteId));
+
+        sprite->id = spriteId;
+
+        auto it = spritesByZIndex.emplace(sprite->GetZIndex(), sprite);
+        spriteIterators[spriteId] = it;
+
+        return true;
+    }
+
+    bool ResourceLoader::UnregisterSprite(int spriteId)
+    {
+        auto it = spriteIterators.find(spriteId);
+        if (it == spriteIterators.end())
+            return false;
+
+        spritesByZIndex.erase(it->second);
+        spriteIterators.erase(it);
+
+        return true;
+    }
+
+    bool ResourceLoader::UpdateSpriteZIndex(Sprite* sprite, int newZIndex)
+    {
+        auto it = spriteIterators.find(sprite->id);
+        if (it == spriteIterators.end())
+            return false;
+
+        spritesByZIndex.erase(it->second);
+
+        auto newIt = spritesByZIndex.emplace(newZIndex, sprite);
+        spriteIterators[sprite->id] = newIt;
+
+        return true;
     }
 
     std::shared_ptr<SDL_Texture> ResourceLoader::LoadTexture(const std::string& filePath)
@@ -127,6 +176,17 @@ namespace Engine
             else
             {
                 ++it;
+            }
+        }
+    }
+
+    void ResourceLoader::RenderSprites()
+    {
+        for (const auto& it : std::ranges::reverse_view(spritesByZIndex))
+        {
+            if (it.second)
+            {
+                Renderer::BufferAdd(it.second->position, it.second, nullptr);
             }
         }
     }

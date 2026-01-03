@@ -12,7 +12,7 @@ namespace Engine
     {
     private:
         /// A map of the parsed configs.
-        static std::map<std::string, std::map<std::string, std::string>> configs;
+        static inline std::map<std::string, std::map<std::string, std::string>> configs;
 
     public:
         CFGParser() = delete;
@@ -28,6 +28,11 @@ namespace Engine
         /// @param filePath The path of the config file.
         /// @param configName The string used to reference the loaded config.
         static void LoadConfig(const std::string& filePath, const std::string& configName);
+
+        /// Saves the current in-memory config to a file.
+        /// @param filePath The path where the config file will be saved.
+        /// @param configName The reference string of the config to save.
+        static void SaveConfig(const std::string& filePath, const std::string& configName);
 
         /// Gets the value of a config as a string.
         /// @param configName The reference string of the config file.
@@ -58,5 +63,35 @@ namespace Engine
         /// @param key The config to obtain the value of.
         /// @returns The config value as a bool.
         static bool GetBool(const std::string& configName, const std::string& key);
+
+        /// Writes a string value to the config in memory.
+        /// @param configName The reference string of the config.
+        /// @param key The config key to write.
+        /// @param value The string value to write.
+        static void WriteString(const std::string& configName, const std::string& key, const std::string& value);
+
+        /// Writes an integer value to the config in memory.
+        /// @param configName The reference string of the config.
+        /// @param key The config key to write.
+        /// @param value The integer value to write.
+        static void WriteInt(const std::string& configName, const std::string& key, int value);
+
+        /// Writes a uint32 value to the config in memory.
+        /// @param configName The reference string of the config.
+        /// @param key The config key to write.
+        /// @param value The uint32 value to write.
+        static void WriteUInt32(const std::string& configName, const std::string& key, uint32_t value);
+
+        /// Writes a uint16 value to the config in memory.
+        /// @param configName The reference string of the config.
+        /// @param key The config key to write.
+        /// @param value The uint16 value to write.
+        static void WriteUInt16(const std::string& configName, const std::string& key, uint16_t value);
+
+        /// Writes a bool value to the config in memory.
+        /// @param configName The reference string of the config.
+        /// @param key The config key to write.
+        /// @param value The bool value to write.
+        static void WriteBool(const std::string& configName, const std::string& key, bool value);
     };
 }

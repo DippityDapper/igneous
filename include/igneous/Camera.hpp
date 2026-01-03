@@ -13,6 +13,7 @@ namespace Engine
     private:
         Vec2<float> previousPosition{0,0};
         float previousZoom = 1.0f;
+        Vec2<float> mouseScreenPosition{0,0};
 
     public:
         /// The main camera used for rendering.
@@ -88,5 +89,9 @@ namespace Engine
         /// @param targetZoom The zoom level to clamp.
         /// @returns The clamped zoom.
         float ClampToBounds(float targetZoom);
+
+        Vec2<float> GetMouseScreenPosition();
+
+        Vec2<float> GetMouseGlobalPosition();
     };
 }

@@ -1,9 +1,11 @@
 #pragma once
 
+#include <map>
 #include <unordered_map>
 #include <string>
 #include <memory>
 
+#include "igneous/Sprite.hpp"
 #include "SDL3_mixer/SDL_mixer.h"
 
 namespace Engine
@@ -31,6 +33,10 @@ namespace Engine
     class ResourceLoader
     {
     private:
+        static inline std::multimap<int, Sprite*> spritesByZIndex{};
+
+        static inline std::unordered_map<int, std::multimap<int, Sprite*>::iterator> spriteIterators{};
+
         /// A map of all loaded and created textures. A unique id is used to index into the map.
         static inline std::unordered_map<int, std::weak_ptr<SDL_Texture>> textures{};
 
@@ -42,8 +48,6 @@ namespace Engine
 
         /// The scale mode to use when loading or creating textures scale, ie nearest, linear, or pixel art
         static inline SDL_ScaleMode scaleMode = SDL_SCALEMODE_LINEAR;
-
-
 
         static inline std::unordered_map<int, std::weak_ptr<AudioStream>> sounds{};
 
@@ -64,6 +68,12 @@ namespace Engine
     public:
         ResourceLoader(const ResourceLoader& other) = delete;
 
+        static bool RegisterSprite(Sprite* sprite);
+
+        static bool UnregisterSprite(int spriteId);
+
+        static bool UpdateSpriteZIndex(Sprite* sprite, int newZIndex);
+
         /// Loads a texture given a file path.
         /// If the file path is found in the texture map, that texture will be returned.
         /// @param texturePath The file path of the texture.
@@ -82,6 +92,8 @@ namespace Engine
         /// @param maxPerCall The max amount of textures that are cleaned per call.
         /// @note This is called within the Engine update loop.
         static void CleanExpired(size_t maxPerCall = 10);
+
+        static void RenderSprites();
 
         /// Sets the scale mode of loaded textures.
         /// @param _scaleMode The SDL scale mode.

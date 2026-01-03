@@ -145,6 +145,7 @@ namespace Engine
                 kvp.second->RenderInternal();
             }
         }
+        ResourceLoader::RenderSprites();
         renderer->Render();
     }
 

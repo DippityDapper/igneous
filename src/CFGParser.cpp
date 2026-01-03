@@ -8,17 +8,29 @@
 
 namespace Engine
 {
-
-    std::map<std::string, std::map<std::string, std::string>> CFGParser::configs;
-
     void CFGParser::LoadConfig(const std::string& filePath, const std::string& configName)
     {
         std::ifstream configFile(filePath);
 
         if (!configFile.is_open())
         {
-            SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to open config file : %s", filePath.c_str());
-            return;
+            SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Config file not found, creating: %s", filePath.c_str());
+
+            std::ofstream newFile(filePath);
+            if (!newFile.is_open())
+            {
+                SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to create config file: %s", filePath.c_str());
+                return;
+            }
+
+            newFile.close();
+
+            configFile.open(filePath);
+            if (!configFile.is_open())
+            {
+                SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to open newly created config file: %s", filePath.c_str());
+                return;
+            }
         }
 
         configs[configName] = {};
@@ -38,13 +50,38 @@ namespace Engine
                 continue;
 
             std::string key = line.substr(0, delimiterPos);
-            key.erase(std::remove_if(key.begin(), key.end(), ::isspace), key.end());
+            std::erase_if(key, isspace);
 
             std::string value = line.substr(delimiterPos + 1);
-            value.erase(std::remove_if(value.begin(), value.end(), ::isspace), value.end());
+            std::erase_if(value, isspace);
 
             configs[configName][key] = value;
         }
+
+        configFile.close();
+    }
+
+    void CFGParser::SaveConfig(const std::string& filePath, const std::string& configName)
+    {
+        if (!configs.contains(configName))
+        {
+            SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Cannot save config %s: config not loaded", configName.c_str());
+            return;
+        }
+
+        std::ofstream configFile(filePath);
+        if (!configFile.is_open())
+        {
+            SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to open config file for writing: %s", filePath.c_str());
+            return;
+        }
+
+        for (const auto& [key, value] : configs[configName])
+        {
+            configFile << key << "=" << value << "\n";
+        }
+
+        configFile.close();
     }
 
     std::string CFGParser::GetString(const std::string& configName, const std::string& key)
@@ -139,5 +176,47 @@ namespace Engine
         }
 
         return value;
+    }
+
+    void CFGParser::WriteString(const std::string& configName, const std::string& key, const std::string& value)
+    {
+        if (!configs.contains(configName))
+            configs[configName] = {};
+
+        configs[configName][key] = value;
+    }
+
+    void CFGParser::WriteInt(const std::string& configName, const std::string& key, int value)
+    {
+        if (!configs.contains(configName))
+            configs[configName] = {};
+
+        configs[configName][key] = std::to_string(value);
+    }
+
+    void CFGParser::WriteUInt32(const std::string& configName, const std::string& key, uint32_t value)
+    {
+        if (!configs.contains(configName))
+            configs[configName] = {};
+
+        configs[configName][key] = std::to_string(value);
+    }
+
+    void CFGParser::WriteUInt16(const std::string& configName, const std::string& key, uint16_t value)
+    {
+        if (!configs.contains(configName))
+            configs[configName] = {};
+
+        configs[configName][key] = std::to_string(value);
+    }
+
+    void CFGParser::WriteBool(const std::string& configName, const std::string& key, bool value)
+    {
+        if (!configs.contains(configName))
+            configs[configName] = {};
+
+        std::ostringstream ss;
+        ss << std::boolalpha << value;
+        configs[configName][key] = ss.str();
     }
 }

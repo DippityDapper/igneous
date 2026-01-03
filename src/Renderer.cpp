@@ -47,9 +47,14 @@ namespace Engine
     void Renderer::BufferAdd(Vec2<float> position, Sprite* sprite, Camera* camera)
     {
         if (camera == nullptr)
-            camera = Camera::main;
+        {
+            if (Camera::main == nullptr)
+                return;
 
-        if (!camera || !renderer || !sprite || !sprite->GetTexture())
+            camera = Camera::main;
+        }
+
+        if (!renderer || !sprite || !sprite->GetTexture())
             return;
 
         SDL_FRect dest;
@@ -92,7 +97,13 @@ namespace Engine
             return;
 
         if (camera == nullptr)
-            camera = Engine::Camera::main;
+        {
+            if (Camera::main == nullptr)
+                return;
+
+            camera = Camera::main;
+        }
+
         float zoom = camera->zoom;
 
         SDL_FRect dest;
@@ -100,8 +111,8 @@ namespace Engine
         dest.w = texture->w * zoom;
         dest.h = texture->h * zoom;
 
-        int viewportW = Engine::Window::viewport.x;
-        int viewportH = Engine::Window::viewport.y;
+        int viewportW = Window::viewport.x;
+        int viewportH = Window::viewport.y;
 
         if (viewportW <= 0 || viewportH <= 0)
             return;
