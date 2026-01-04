@@ -48,7 +48,7 @@ namespace Engine
         /// The y position to sample from the texture. In pixels.
         int atlasY = 0;
 
-        /// Determines if the texture will be rendered from its center. This effect scaling.
+        /// Determines if the texture will be rendered from its center. This effects scale direction.
         bool centered = true;
 
         /// The scale of the texture.
@@ -67,6 +67,8 @@ namespace Engine
         /// @param filePath The file path to the texture.
         Sprite(Vec2<float>& pos, const std::string& filePath);
 
+        Sprite(Vec2<float>& pos, std::shared_ptr<SDL_Texture> text);
+
         /// Creates a sprite from a file path.
         /// @param filePath The file path to the texture.
         /// @param _w The atlas width to sample from the main texture.
@@ -74,6 +76,8 @@ namespace Engine
         /// @param _x The atlas x position to sample from the main texture.
         /// @param _y The atlas y position to sample from the main texture.
         Sprite(Vec2<float>& pos, const std::string& filePath, float _w, float _h, int _x, int _y);
+
+        Sprite(Vec2<float>& pos, std::shared_ptr<SDL_Texture> text, float _w, float _h, int _x, int _y);
 
         ~Sprite();
 

@@ -206,6 +206,7 @@ namespace Engine
     void Scenes::RunUnloadQueue()
     {
         int queueSize = queuedUnloadScenes.size();
+
         for (int i = 0; i < queueSize; i++)
         {
             Scene* scene = queuedUnloadScenes.front();

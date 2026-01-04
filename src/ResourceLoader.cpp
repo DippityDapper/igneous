@@ -182,7 +182,7 @@ namespace Engine
 
     void ResourceLoader::RenderSprites()
     {
-        for (const auto& it : std::ranges::reverse_view(spritesByZIndex))
+        for (const auto& it : spritesByZIndex)
         {
             if (it.second)
             {

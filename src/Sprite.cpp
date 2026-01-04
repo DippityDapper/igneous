@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "igneous/Sprite.hpp"
 
 #include "igneous/Camera.hpp"
@@ -29,9 +31,36 @@ namespace Engine
         ResourceLoader::RegisterSprite(this);
     }
 
+    Sprite::Sprite(Vec2<float>& pos, std::shared_ptr<SDL_Texture> text) : position(pos)
+    {
+        texture = std::move(text);
+        if (texture)
+        {
+            SDL_GetTextureSize(texture.get(), &w, &h);
+            atlasW = w;
+            atlasH = h;
+        }
+        ResourceLoader::RegisterSprite(this);
+    }
+
     Sprite::Sprite(Vec2<float>& pos, const std::string& filePath, float _w, float _h, int _x, int _y) : position(pos)
     {
         texture = ResourceLoader::LoadTexture(filePath);
+        if (texture)
+        {
+            SDL_GetTextureSize(texture.get(), &w, &h);
+            atlasW = _w;
+            atlasH = _h;
+        }
+
+        atlasX = _x;
+        atlasY = _y;
+        ResourceLoader::RegisterSprite(this);
+    }
+
+    Sprite::Sprite(Vec2<float>& pos, std::shared_ptr<SDL_Texture> text, float _w, float _h, int _x, int _y) : position(pos)
+    {
+        texture = std::move(text);
         if (texture)
         {
             SDL_GetTextureSize(texture.get(), &w, &h);
