@@ -51,6 +51,8 @@ namespace Engine
         /// Determines if the texture will be rendered from its center. This effects scale direction.
         bool centered = true;
 
+        bool render = true;
+
         /// The scale of the texture.
         float scaleX = 1.0f;
         float scaleY = 1.0f;

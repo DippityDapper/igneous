@@ -186,7 +186,8 @@ namespace Engine
         {
             if (it.second)
             {
-                Renderer::BufferAdd(it.second->position, it.second, nullptr);
+                if (it.second->render)
+                    Renderer::BufferAdd(it.second->position, it.second, nullptr);
             }
         }
     }
