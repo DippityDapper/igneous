@@ -1,4 +1,4 @@
-#include "igneous/CFGParser.hpp"
+#include "igneous/engine/CFGParser.hpp"
 
 #include <sstream>
 #include <fstream>

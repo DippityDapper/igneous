@@ -1,6 +1,6 @@
 #pragma once
 
-#include "igneous/Vec2.hpp"
+#include "igneous/engine/Vec2.hpp"
 
 struct SDL_Window;
 

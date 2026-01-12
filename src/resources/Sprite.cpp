@@ -1,11 +1,11 @@
 #include <utility>
 
-#include "igneous/Sprite.hpp"
+#include "igneous/resources/Sprite.hpp"
 
-#include "igneous/Camera.hpp"
+#include "igneous/engine/Camera.hpp"
 #include "SDL3/SDL.h"
 
-#include "igneous/ResourceLoader.hpp"
+#include "igneous/resources/ResourceManager.hpp"
 
 namespace Engine
 {
@@ -16,19 +16,19 @@ namespace Engine
         atlasH = sprite.atlasH;
         atlasX = sprite.atlasX;
         atlasY = sprite.atlasY;
-        ResourceLoader::RegisterSprite(this);
+        ResourceManager::RegisterSprite(this);
     }
 
     Sprite::Sprite(Vec2<float>& pos, const std::string& filePath) : position(pos)
     {
-        texture = ResourceLoader::LoadTexture(filePath);
+        texture = ResourceManager::LoadTexture(filePath);
         if (texture)
         {
             SDL_GetTextureSize(texture.get(), &w, &h);
             atlasW = w;
             atlasH = h;
         }
-        ResourceLoader::RegisterSprite(this);
+        ResourceManager::RegisterSprite(this);
     }
 
     Sprite::Sprite(Vec2<float>& pos, std::shared_ptr<SDL_Texture> text) : position(pos)
@@ -40,12 +40,12 @@ namespace Engine
             atlasW = w;
             atlasH = h;
         }
-        ResourceLoader::RegisterSprite(this);
+        ResourceManager::RegisterSprite(this);
     }
 
     Sprite::Sprite(Vec2<float>& pos, const std::string& filePath, float _w, float _h, int _x, int _y) : position(pos)
     {
-        texture = ResourceLoader::LoadTexture(filePath);
+        texture = ResourceManager::LoadTexture(filePath);
         if (texture)
         {
             SDL_GetTextureSize(texture.get(), &w, &h);
@@ -55,7 +55,7 @@ namespace Engine
 
         atlasX = _x;
         atlasY = _y;
-        ResourceLoader::RegisterSprite(this);
+        ResourceManager::RegisterSprite(this);
     }
 
     Sprite::Sprite(Vec2<float>& pos, std::shared_ptr<SDL_Texture> text, float _w, float _h, int _x, int _y) : position(pos)
@@ -70,17 +70,17 @@ namespace Engine
 
         atlasX = _x;
         atlasY = _y;
-        ResourceLoader::RegisterSprite(this);
+        ResourceManager::RegisterSprite(this);
     }
 
     Sprite::~Sprite()
     {
-        ResourceLoader::UnregisterSprite(id);
+        ResourceManager::UnregisterSprite(id);
     }
 
     bool Sprite::SetTexture(const std::string& filePath)
     {
-        std::shared_ptr<SDL_Texture> newTexture = ResourceLoader::LoadTexture(filePath);
+        std::shared_ptr<SDL_Texture> newTexture = ResourceManager::LoadTexture(filePath);
         if (!newTexture)
             return false;
 
@@ -107,7 +107,7 @@ namespace Engine
             return;
 
         zIndex = z;
-        ResourceLoader::UpdateSpriteZIndex(this, z);
+        ResourceManager::UpdateSpriteZIndex(this, z);
     }
 
     int Sprite::GetZIndex()

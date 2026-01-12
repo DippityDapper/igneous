@@ -1,6 +1,8 @@
 #pragma once
 
-#include "igneous/Vec2.hpp"
+#include "igneous/engine/Vec2.hpp"
+#include "igneous/input/InputEvent.hpp"
+#include "igneous/input/InputLayer.hpp"
 
 union SDL_Event;
 
@@ -13,7 +15,6 @@ namespace Engine
     private:
         Vec2<float> previousPosition{0,0};
         float previousZoom = 1.0f;
-        Vec2<float> mouseScreenPosition{0,0};
 
     public:
         /// The main camera used for rendering.
@@ -52,7 +53,7 @@ namespace Engine
 
         /// Internal engine call.
         /// @note Do not call this directly unless you are extending the engine core.
-        void HandleEventsInternal(SDL_Event& event);
+        void HandleEventsInternal(InputLayer& layer);
 
         /// A virtual function that is called every engine loop.
         /// @param delta delta time for the current iteration.
@@ -60,7 +61,7 @@ namespace Engine
 
         /// A virtual function that is called every engine loop for each SDL event that has occurred this iteration.
         /// @param event The event object.
-        virtual void HandleEvents(SDL_Event& event){};
+        virtual void HandleEvents(InputLayer& layer){};
 
         /// Set this camera as the main camera.
         void SetCurrent();
@@ -89,8 +90,6 @@ namespace Engine
         /// @param targetZoom The zoom level to clamp.
         /// @returns The clamped zoom.
         float ClampToBounds(float targetZoom);
-
-        Vec2<float> GetMouseScreenPosition();
 
         Vec2<float> GetMouseGlobalPosition();
     };

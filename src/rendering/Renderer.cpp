@@ -1,14 +1,14 @@
-#include "igneous/Renderer.hpp"
+#include "igneous/rendering/Renderer.hpp"
 
 #include "SDL3/SDL.h"
 #include "imgui.h"
 #include "backends/imgui_impl_sdl3.h"
 #include "backends/imgui_impl_sdlrenderer3.h"
 
-#include "igneous/Vec2.hpp"
-#include "igneous/Sprite.hpp"
-#include "igneous/Camera.hpp"
-#include "igneous/Window.hpp"
+#include "igneous/engine/Vec2.hpp"
+#include "igneous/resources/Sprite.hpp"
+#include "igneous/engine/Camera.hpp"
+#include "igneous/rendering/Window.hpp"
 
 namespace Engine
 {

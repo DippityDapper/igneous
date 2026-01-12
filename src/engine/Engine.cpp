@@ -1,33 +1,20 @@
-#include "igneous/Engine.hpp"
+#include "igneous/engine/Engine.hpp"
+
+#include <ranges>
 
 #include "imgui_impl_sdl3.h"
 #include "enet/enet.h"
 #include "SDL3_mixer/SDL_mixer.h"
 
-#include "igneous/Scene.hpp"
-#include "igneous/Renderer.hpp"
-#include "igneous/Window.hpp"
-#include "igneous/ResourceLoader.hpp"
-#include "igneous/Camera.hpp"
-#include "igneous/Input.hpp"
-#include "igneous/Scenes.hpp"
-
+#include "igneous/rendering/Renderer.hpp"
+#include "igneous/rendering/Window.hpp"
+#include "igneous/resources/ResourceManager.hpp"
+#include "igneous/engine/Camera.hpp"
+#include "igneous/input/Input.hpp"
+#include "igneous/scenes/SceneManager.hpp"
 
 namespace Engine
 {
-    bool Engine::running = true;
-    uint64_t Engine::lastTick = 0;
-    uint64_t Engine::currentTick = 0;
-    float Engine::deltaTime = 0;
-
-    int Engine::Run()
-    {
-        Init();
-        Update();
-        Clean();
-        return 0;
-    }
-
     void Engine::Init()
     {
         if (!InitSDL())
@@ -37,6 +24,16 @@ namespace Engine
         }
 
         if (!InitENet())
+        {
+            running = false;
+        }
+
+        if (!Input::Init())
+        {
+            running = false;
+        }
+
+        if (!SceneManager::Init())
         {
             running = false;
         }
@@ -79,6 +76,8 @@ namespace Engine
 
     void Engine::HandleEvents()
     {
+        Input::ResetEvents();
+
         SDL_Event sdlEvent;
         while (SDL_PollEvent(&sdlEvent))
         {
@@ -94,16 +93,17 @@ namespace Engine
                 Window::viewport.y = sdlEvent.window.data2;
             }
 
-            Input::HandleEvents(sdlEvent);
+            Input::HandleEvent(sdlEvent);
+        }
+
+        for (auto& layer: Input::GetInputLayers() | std::views::values)
+        {
+            if (SceneManager::GetSceneRoot())
+                SceneManager::GetSceneRoot()->UI(layer);
             if (Camera::main)
-                Camera::main->HandleEventsInternal(sdlEvent);
-            for (const auto& kvp : Scenes::loadedScenes)
-            {
-                if (kvp.second)
-                {
-                    kvp.second->HandleEventsInternal(sdlEvent);
-                }
-            }
+                Camera::main->HandleEventsInternal(layer);
+            if (SceneManager::GetSceneRoot())
+                SceneManager::GetSceneRoot()->HandleEvents(layer);
         }
     }
 
@@ -111,55 +111,36 @@ namespace Engine
     {
         while (running)
         {
-            Scenes::RunRemoveQueue();
-            Scenes::RunUnloadQueue();
-            Scenes::RunLoadQueue();
-            HandleEvents();
-
+            Renderer::BufferClear();
             lastTick = currentTick;
             currentTick = SDL_GetTicks();
             deltaTime = (float)(currentTick - lastTick) / 1000.0f;
 
-            for (const auto& kvp : Scenes::loadedScenes)
-            {
-                if (kvp.second)
-                {
-                    kvp.second->UpdateInternal(deltaTime);
-                }
-            }
+            HandleEvents();
+
+            if (SceneManager::GetSceneRoot())
+                SceneManager::GetSceneRoot()->Update(deltaTime);
             if (Camera::main)
                 Camera::main->UpdateInternal(deltaTime);
+            ResourceManager::CleanExpired(10);
 
-            ResourceLoader::CleanExpired(10);
-            Render();
-        }
-    }
+            if (SceneManager::GetSceneRoot())
+                SceneManager::GetSceneRoot()->Render();
+            ResourceManager::RenderSprites();
 
-    void Engine::Render() const
-    {
-        Renderer::BufferClear();
-        for (const auto& kvp : Scenes::loadedScenes)
-        {
-            if (kvp.second)
-            {
-                kvp.second->RenderInternal();
-            }
+            renderer->Render();
         }
-        ResourceLoader::RenderSprites();
-        renderer->Render();
     }
 
     void Engine::Clean() const
     {
-        Scenes::Clean();
-        ResourceLoader::Clean();
+        if (SceneManager::GetSceneRoot())
+            SceneManager::GetSceneRoot()->Clean();
+        ResourceManager::Clean();
         enet_deinitialize();
 
         renderer->Clean();
         window->Clean();
-
-        delete renderer;
-        delete window;
 
         SDL_Quit();
     }

@@ -1,7 +1,8 @@
-#include "igneous/Camera.hpp"
+#include "igneous/engine/Camera.hpp"
 
+#include "igneous/input/Input.hpp"
 #include "SDL3/SDL.h"
-#include "igneous/Window.hpp"
+#include "igneous/rendering/Window.hpp"
 
 namespace Engine
 {
@@ -40,21 +41,16 @@ namespace Engine
         Update(delta);
     }
 
-    void Camera::HandleEventsInternal(SDL_Event& event)
+    void Camera::HandleEventsInternal(InputLayer& layer)
     {
-        if (event.type == SDL_EVENT_WINDOW_RESIZED)
+        if (Input::IsWindowResized())
         {
             if (limitBounds)
             {
                 BoundsCheck();
             }
         }
-        if (event.type == SDL_EVENT_MOUSE_MOTION)
-        {
-            mouseScreenPosition.x = event.motion.x;
-            mouseScreenPosition.y = event.motion.y;
-        }
-        HandleEvents(event);
+        HandleEvents(layer);
     }
 
     bool Camera::IsWithinBounds(Vec2<float> _position)
@@ -106,11 +102,6 @@ namespace Engine
         return targetZoom;
     }
 
-    Vec2<float> Camera::GetMouseScreenPosition()
-    {
-        return mouseScreenPosition;
-    }
-
     Vec2<float> Camera::GetMouseGlobalPosition()
     {
         float viewportX = (float)Window::viewport.x;
@@ -119,8 +110,8 @@ namespace Engine
         float screenOffsetX = viewportX / 2.0f;
         float screenOffsetY = viewportY / 2.0f;
 
-        float mouseGlobalX = (mouseScreenPosition.x - screenOffsetX) / zoom + position.x;
-        float mouseGlobalY = (mouseScreenPosition.y - screenOffsetY) / zoom + position.y;
+        float mouseGlobalX = (Input::GetMouseScreenPosition().x - screenOffsetX) / zoom + position.x;
+        float mouseGlobalY = (Input::GetMouseScreenPosition().y - screenOffsetY) / zoom + position.y;
 
         return {mouseGlobalX, mouseGlobalY};
     }

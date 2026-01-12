@@ -1,6 +1,6 @@
-#include "igneous/AudioStream.hpp"
+#include "igneous/resources/AudioStream.hpp"
 
-#include "igneous/ResourceLoader.hpp"
+#include "igneous/resources/ResourceManager.hpp"
 
 namespace Engine
 {
@@ -18,19 +18,19 @@ namespace Engine
     void AudioStream::Play(float gain)
     {
         MIX_Track* available = nullptr;
-        for (const auto& kvp : ResourceLoader::tracks)
+        for (const auto& kvp : ResourceManager::tracks)
         {
             if (kvp.second)
             {
                 available = kvp.first;
-                ResourceLoader::tracks[available] = false;
+                ResourceManager::tracks[available] = false;
                 break;
             }
         }
 
         if (!available)
         {
-            MIX_Track* track = ResourceLoader::tracks.begin()->first;
+            MIX_Track* track = ResourceManager::tracks.begin()->first;
             MIX_StopTrack(track, 0);
             available = track;
             SDL_Log("Too many sounds playing at once!");
@@ -41,7 +41,7 @@ namespace Engine
             available,
             [](void*, MIX_Track* track)
                 {
-                    ResourceLoader::tracks[track] = true;
+                    ResourceManager::tracks[track] = true;
                 },
         nullptr
         );

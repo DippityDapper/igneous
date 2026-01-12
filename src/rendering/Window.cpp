@@ -1,4 +1,4 @@
-#include "igneous/Window.hpp"
+#include "igneous/rendering/Window.hpp"
 
 #include "SDL3/SDL.h"
 

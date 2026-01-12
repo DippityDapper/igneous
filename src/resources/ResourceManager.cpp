@@ -1,16 +1,16 @@
-#include "igneous/ResourceLoader.hpp"
+#include "igneous/resources/ResourceManager.hpp"
 
 #include <random>
 #include <ranges>
 
-#include "igneous/AudioStream.hpp"
+#include "igneous/resources/AudioStream.hpp"
 #include "SDL3_image/SDL_image.h"
 
-#include "igneous/Renderer.hpp"
+#include "igneous/rendering/Renderer.hpp"
 
 namespace Engine
 {
-    void ResourceLoader::Clean()
+    void ResourceManager::Clean()
     {
         for (const auto& kvp : tracks)
         {
@@ -20,7 +20,7 @@ namespace Engine
         MIX_Quit();
     }
 
-    bool ResourceLoader::RegisterSprite(Sprite* sprite)
+    bool ResourceManager::RegisterSprite(Sprite* sprite)
     {
         if (spriteIterators.contains(sprite->id))
             return false;
@@ -42,7 +42,7 @@ namespace Engine
         return true;
     }
 
-    bool ResourceLoader::UnregisterSprite(int spriteId)
+    bool ResourceManager::UnregisterSprite(int spriteId)
     {
         auto it = spriteIterators.find(spriteId);
         if (it == spriteIterators.end())
@@ -54,7 +54,7 @@ namespace Engine
         return true;
     }
 
-    bool ResourceLoader::UpdateSpriteZIndex(Sprite* sprite, int newZIndex)
+    bool ResourceManager::UpdateSpriteZIndex(Sprite* sprite, int newZIndex)
     {
         auto it = spriteIterators.find(sprite->id);
         if (it == spriteIterators.end())
@@ -68,7 +68,7 @@ namespace Engine
         return true;
     }
 
-    std::shared_ptr<SDL_Texture> ResourceLoader::LoadTexture(const std::string& filePath)
+    std::shared_ptr<SDL_Texture> ResourceManager::LoadTexture(const std::string& filePath)
     {
         if (filePath.empty())
             return nullptr;
@@ -118,7 +118,7 @@ namespace Engine
         return nullptr;
     }
 
-    std::shared_ptr<SDL_Texture> ResourceLoader::CreateTexture(SDL_PixelFormat format, SDL_TextureAccess access, int w, int h)
+    std::shared_ptr<SDL_Texture> ResourceManager::CreateTexture(SDL_PixelFormat format, SDL_TextureAccess access, int w, int h)
     {
         SDL_Texture* rawTexture = SDL_CreateTexture(
                 Renderer::GetRenderer(),
@@ -138,7 +138,7 @@ namespace Engine
         return texture;
     }
 
-    void ResourceLoader::CleanExpired(size_t maxPerCall)
+    void ResourceManager::CleanExpired(size_t maxPerCall)
     {
         if (textures.empty())
             return;
@@ -180,7 +180,7 @@ namespace Engine
         }
     }
 
-    void ResourceLoader::RenderSprites()
+    void ResourceManager::RenderSprites()
     {
         for (const auto& it : spritesByZIndex)
         {
@@ -192,15 +192,21 @@ namespace Engine
         }
     }
 
-    void ResourceLoader::SetScaleMode(SDL_ScaleMode _scaleMode)
+    void ResourceManager::SetScaleMode(SDL_ScaleMode _scaleMode)
     {
         scaleMode = _scaleMode;
     }
 
-    std::shared_ptr<AudioStream> ResourceLoader::LoadSound(const std::string& filePath, SDL_PropertiesID properties)
+    std::shared_ptr<AudioStream> ResourceManager::LoadSound(const std::string& filePath, SDL_PropertiesID properties)
     {
         if (filePath.empty())
             return nullptr;
+
+        if (!MIX_Init())
+        {
+            SDL_Log("MIX init failed: %s", SDL_GetError());
+            return nullptr;
+        }
 
         if (!mixer)
             mixer = MIX_CreateMixerDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, nullptr);
@@ -245,7 +251,7 @@ namespace Engine
         return sound;
     }
 
-    MIX_Mixer* ResourceLoader::GetMixer()
+    MIX_Mixer* ResourceManager::GetMixer()
     {
         return mixer;
     }

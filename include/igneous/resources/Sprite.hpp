@@ -3,7 +3,7 @@
 #include <string>
 #include <memory>
 
-#include "igneous/Vec2.hpp"
+#include "igneous/engine/Vec2.hpp"
 
 namespace Engine
 {

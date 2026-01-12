@@ -1,12 +1,14 @@
 #pragma once
 
-#include <cstdint>
 #include <string>
 
-union SDL_Event;
+#include "igneous/input/InputEvent.hpp"
+#include "igneous/input/InputLayer.hpp"
 
 namespace Engine
 {
+    class SceneRoot;
+
     /// Engine base scene.
     ///
     /// The logic flow looks like this:
@@ -17,17 +19,19 @@ namespace Engine
     /// Render()
     /// Clean() // When a new scene is set, the old scene is cleaned
     /// @endcode
+
     class Scene
     {
     public:
-        uint32_t id = 0;
+        SceneRoot* root = nullptr;
         std::string name{};
-
-        bool active = false;
         bool singleton = false;
 
+    private:
+        bool active = false;
+
     public:
-        virtual ~Scene() = default;
+        virtual ~Scene();
 
         /// Initializes the scene.
         /// @internal
@@ -38,6 +42,8 @@ namespace Engine
         /// @internal
         /// @note This is called internally within the Engine.
         void UpdateInternal(float delta);
+
+        void UIInternal(InputLayer& layer);
 
         /// Renders the scene.
         /// @internal
@@ -52,32 +58,33 @@ namespace Engine
         /// Handles events in the scene.
         /// @internal
         /// @note This is called internally within the Engine.
-        void HandleEventsInternal(SDL_Event& event);
+        void HandleEventsInternal(InputLayer& layer);
+
+        void SetActive(bool value);
+
+        bool IsActive();
 
     private:
         /// A virtual function that is called on initialization of the scene.
-        virtual void Init(){};
+        virtual void Init(){}
 
         /// A virtual function called every Engine loop.
         /// @param delta delta time.
         /// @note Rendering textures should be done in the Rendering() call.
-        virtual void Update(float delta){};
+        virtual void Update(float delta){}
+
+        virtual void UI(InputLayer& layer){}
 
         /// A virtual function for rendering scene components.
-        virtual void Render(){};
+        virtual void Render(){}
 
         /// A virtual function that handles events.
         /// @param event The event being handled.
-        virtual void HandleEvents(SDL_Event& event){};
+        virtual void HandleEvents(InputLayer& layer){}
 
         /// A virtual function that cleans a scene and all of it's components.
-        virtual void Clean(){};
+        virtual void Clean(){}
 
-    public:
-        // void Init() override;
-        // void Update(float delta) override;
-        // void Render() override;
-        // void HandleEvents(SDL_Event& event) override;
-        // void Clean() override;
+        virtual void OnActiveChanged(bool value){}
     };
 }

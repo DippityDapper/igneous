@@ -5,7 +5,7 @@
 #include <string>
 #include <memory>
 
-#include "igneous/Sprite.hpp"
+#include "igneous/resources/Sprite.hpp"
 #include "SDL3_mixer/SDL_mixer.h"
 
 namespace Engine
@@ -30,7 +30,7 @@ namespace Engine
     /// Utility class that loads and creates textures.
     ///
     /// Unused textures are automatically cleaned periodically.
-    class ResourceLoader
+    class ResourceManager
     {
     private:
         static inline std::multimap<int, Sprite*> spritesByZIndex{};
@@ -66,7 +66,7 @@ namespace Engine
         static void Clean();
 
     public:
-        ResourceLoader(const ResourceLoader& other) = delete;
+        ResourceManager(const ResourceManager& other) = delete;
 
         static bool RegisterSprite(Sprite* sprite);
 

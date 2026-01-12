@@ -1,13 +1,15 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
+
+#include "igneous/scenes/Scene.hpp"
+#include "igneous/scenes/SceneManager.hpp"
+#include "igneous/rendering/Renderer.hpp"
+#include "igneous/rendering/Window.hpp"
 
 namespace Engine
 {
-    class Window;
-    class Renderer;
-    class Scene;
-
     /// The main engine class.
     ///
     /// The `Engine` manages the application lifecycle — initialization, the main update/render loop,
@@ -25,26 +27,22 @@ namespace Engine
     class Engine
     {
     private:
-        static bool running;
+        static inline bool running = true;
 
-        static uint64_t lastTick;
-        static uint64_t currentTick;
-        static float deltaTime;
+        static inline uint64_t lastTick = 0;
+        static inline uint64_t currentTick = 0;
+        static inline float deltaTime = 0;
 
     public:
         /// Pointer to the window used for rendering.
         /// @see Engine::Window
-        Window* window = nullptr;
+        std::unique_ptr<Window> window = nullptr;
 
         /// Pointer to the renderer handling all draw calls.
         /// @see Engine::Renderer
-        Renderer* renderer = nullptr;
+        std::unique_ptr<Renderer> renderer = nullptr;
 
     private:
-        /// Handles rendering.
-        /// @note This is called as part of the Engine update loop.
-        void Render() const;
-
         /// Handles SDL and ImGui events.
         /// @note This is called as part of the Engine update loop.
         void HandleEvents();
@@ -71,7 +69,8 @@ namespace Engine
         /// Starts the main loop given an initial scene.
         /// @param scene The initial scene to be updated and rendered.
         /// @returns The error code.
-        int Run();
+        template<class T> requires(std::is_base_of_v<Scene, T>)
+        int Run(const std::string& initialSceneName);
 
         /// Gets the delta time from the last frame to the current frame.
         /// @returns The delta time.
@@ -81,4 +80,14 @@ namespace Engine
         /// Does not immediately exit the application.
         static void Quit();
     };
+
+    template<class T> requires (std::is_base_of_v<Scene, T>)
+    int Engine::Run(const std::string& initialSceneName)
+    {
+        Init();
+        SceneManager::GetSceneRoot()->AddScene<T>(initialSceneName, true, false);
+        Update();
+        Clean();
+        return 0;
+    }
 }
