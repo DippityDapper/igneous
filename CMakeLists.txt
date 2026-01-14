@@ -42,9 +42,6 @@ add_library(igneous STATIC
 
 target_include_directories(igneous PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
-
-target_include_directories(igneous PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/libs/enet/include
 )
 

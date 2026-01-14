@@ -10,6 +10,7 @@
 #include "igneous/rendering/Window.hpp"
 #include "igneous/resources/ResourceManager.hpp"
 #include "igneous/engine/Camera.hpp"
+#include "igneous/engine/Time.hpp"
 #include "igneous/input/Input.hpp"
 #include "igneous/scenes/SceneManager.hpp"
 
@@ -53,11 +54,11 @@ namespace Engine
             return false;
         }
 
-        window->Init(640, 360);
-        renderer->Init();
+        Window::Init(640, 360);
+        Renderer::Init();
 
-        currentTick = SDL_GetTicks();
-        lastTick = currentTick;
+        Time::currentTick = SDL_GetTicks();
+        Time::lastTick = Time::currentTick;
 
         return true;
     }
@@ -112,23 +113,23 @@ namespace Engine
         while (running)
         {
             Renderer::BufferClear();
-            lastTick = currentTick;
-            currentTick = SDL_GetTicks();
-            deltaTime = (float)(currentTick - lastTick) / 1000.0f;
+            Time::lastTick = Time::currentTick;
+            Time::currentTick = SDL_GetTicks();
+            Time::deltaTime = (float)(Time::currentTick - Time::lastTick) / 1000.0f;
 
             HandleEvents();
 
             if (SceneManager::GetSceneRoot())
-                SceneManager::GetSceneRoot()->Update(deltaTime);
+                SceneManager::GetSceneRoot()->Update(Time::deltaTime);
             if (Camera::main)
-                Camera::main->UpdateInternal(deltaTime);
+                Camera::main->UpdateInternal(Time::deltaTime);
             ResourceManager::CleanExpired(10);
 
             if (SceneManager::GetSceneRoot())
                 SceneManager::GetSceneRoot()->Render();
             ResourceManager::RenderSprites();
 
-            renderer->Render();
+            Renderer::Render();
         }
     }
 
@@ -139,15 +140,10 @@ namespace Engine
         ResourceManager::Clean();
         enet_deinitialize();
 
-        renderer->Clean();
-        window->Clean();
+        Renderer::Clean();
+        Window::Clean();
 
         SDL_Quit();
-    }
-
-    float Engine::GetDeltaTime()
-    {
-        return deltaTime;
     }
 
     void Engine::Quit()

@@ -12,6 +12,9 @@ namespace Engine
 {
     void ResourceManager::Clean()
     {
+        spritesByZIndex.clear();
+        spriteIterators.clear();
+
         for (const auto& kvp : tracks)
         {
             MIX_DestroyTrack(kvp.first);
@@ -44,6 +47,9 @@ namespace Engine
 
     bool ResourceManager::UnregisterSprite(int spriteId)
     {
+        if (spriteIterators.empty())
+            return false;
+
         auto it = spriteIterators.find(spriteId);
         if (it == spriteIterators.end())
             return false;

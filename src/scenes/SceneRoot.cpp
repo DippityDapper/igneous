@@ -48,6 +48,8 @@ namespace Engine
 
     void SceneRoot::Clean()
     {
+        for (const auto& scene: scenes | std::views::values)
+            scene->CleanInternal();
         scenes.clear();
     }
 

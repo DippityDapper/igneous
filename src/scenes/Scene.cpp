@@ -1,5 +1,4 @@
 #include "igneous/scenes/Scene.hpp"
-#include "SDL3/SDL.h"
 
 namespace Engine
 {
