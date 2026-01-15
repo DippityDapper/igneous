@@ -113,6 +113,7 @@ namespace Engine
         while (running)
         {
             Renderer::BufferClear();
+            
             Time::lastTick = Time::currentTick;
             Time::currentTick = SDL_GetTicks();
             Time::deltaTime = (float)(Time::currentTick - Time::lastTick) / 1000.0f;

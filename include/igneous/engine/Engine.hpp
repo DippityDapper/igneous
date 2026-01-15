@@ -1,12 +1,7 @@
 #pragma once
 
-#include <cstdint>
-#include <memory>
-
 #include "igneous/scenes/Scene.hpp"
 #include "igneous/scenes/SceneManager.hpp"
-#include "igneous/rendering/Renderer.hpp"
-#include "igneous/rendering/Window.hpp"
 
 // Using Doxygen-style documentation
 
