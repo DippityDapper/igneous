@@ -29,7 +29,7 @@ namespace Engine
      */
     class InputLayer
     {
-    private:
+      private:
         /**
          * @brief The unique name of this input layer.
          *
@@ -45,7 +45,7 @@ namespace Engine
          */
         int priority = 0;
 
-    public:
+      public:
         /**
          * @brief Constructs an input layer with a name and priority.
          *

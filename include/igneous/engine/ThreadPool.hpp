@@ -10,14 +10,14 @@ namespace Engine
 {
     class ThreadPool
     {
-    public:
+      public:
         explicit ThreadPool(size_t numThreads = std::thread::hardware_concurrency());
         ~ThreadPool();
 
         template<class F, class... Args>
         std::future<std::invoke_result_t<F, Args...>> Enqueue(F&& f, Args&&... args);
 
-    private:
+      private:
         std::vector<std::thread> workers;
         std::queue<std::function<void()>> tasks;
 
@@ -30,12 +30,12 @@ namespace Engine
 namespace Engine
 {
     inline ThreadPool::ThreadPool(size_t numThreads)
-    : stop(false)
+        : stop(false)
     {
         for (size_t i = 0; i < numThreads; ++i)
         {
             workers.emplace_back([this]
-            {
+                                 {
                 while (true)
                 {
                     std::function<void()> task;
@@ -50,8 +50,7 @@ namespace Engine
                     }
 
                     task();
-                }
-            });
+                } });
         }
     }
 
@@ -59,7 +58,7 @@ namespace Engine
     {
         stop = true;
         condition.notify_all();
-        for (auto& worker : workers)
+        for (auto& worker: workers)
             worker.join();
     }
 
@@ -67,15 +66,14 @@ namespace Engine
     std::future<std::invoke_result_t<F, Args...>> ThreadPool::Enqueue(F&& f, Args&&... args)
     {
         using return_type = std::invoke_result_t<F, Args...>;
-        auto task = std::make_shared<std::packaged_task<return_type()>>
-        (
-            std::bind(std::forward<F>(f), std::forward<Args>(args)...)
-        );
+        auto task = std::make_shared<std::packaged_task<return_type()>>(
+                std::bind(std::forward<F>(f), std::forward<Args>(args)...));
 
         std::future<return_type> res = task->get_future();
         {
             std::unique_lock<std::mutex> lock(queueMutex);
-            tasks.emplace([task]() { (*task)(); });
+            tasks.emplace([task]()
+                          { (*task)(); });
         }
         condition.notify_one();
         return res;

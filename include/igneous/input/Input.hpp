@@ -52,7 +52,7 @@ namespace Engine
      */
     class Input
     {
-    private:
+      private:
         /**
          * @brief Multimap of input layers sorted by priority (descending).
          *
@@ -127,7 +127,7 @@ namespace Engine
          */
         static inline bool wasWindowResized = false;
 
-    public:
+      public:
         /**
          * @brief Initializes the input system with default layers.
          *
@@ -285,7 +285,7 @@ namespace Engine
          * @note Automatically marks the key as handled when returning true.
          * @note Respects ImGui's input capture state.
          */
-        static bool IsKeyDown(SDL_Keycode key, bool skipIfHandled=true);
+        static bool IsKeyDown(SDL_Keycode key, bool skipIfHandled = true);
 
         /**
          * @brief Checks if a key was just pressed this frame.
@@ -308,7 +308,7 @@ namespace Engine
          * @note Automatically marks the key as handled when returning true.
          * @note Respects ImGui's input capture state.
          */
-        static bool IsKeyJustPressed(SDL_Keycode key, bool skipIfHandled=true);
+        static bool IsKeyJustPressed(SDL_Keycode key, bool skipIfHandled = true);
 
         /**
          * @brief Checks if a key was just released this frame.
@@ -348,7 +348,7 @@ namespace Engine
          * @note Automatically marks the button as handled when returning true.
          * @note Respects ImGui's input capture state.
          */
-        static bool IsMouseButtonDown(SDL_MouseButtonFlags mouseButton, bool skipIfHandled=true);
+        static bool IsMouseButtonDown(SDL_MouseButtonFlags mouseButton, bool skipIfHandled = true);
 
         /**
          * @brief Checks if a mouse button was just pressed this frame.
@@ -371,7 +371,7 @@ namespace Engine
          * @note Automatically marks the button as handled when returning true.
          * @note Respects ImGui's input capture state.
          */
-        static bool IsButtonJustPressed(SDL_MouseButtonFlags mouseButton, bool skipIfHandled=true);
+        static bool IsButtonJustPressed(SDL_MouseButtonFlags mouseButton, bool skipIfHandled = true);
 
         /**
          * @brief Checks if a mouse button was just released this frame.

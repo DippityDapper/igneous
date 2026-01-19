@@ -27,7 +27,7 @@ namespace Engine
      */
     class SceneManager
     {
-    private:
+      private:
         /**
          * @brief The static SceneRoot instance.
          *
@@ -38,7 +38,7 @@ namespace Engine
          */
         static inline std::unique_ptr<SceneRoot> sceneRoot = nullptr;
 
-    public:
+      public:
         /**
          * @brief Initializes the SceneManager by creating a new SceneRoot.
          *

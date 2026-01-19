@@ -88,7 +88,7 @@ namespace Engine
         return true;
     }
 
-    SDL_Texture *Sprite::GetTexture()
+    SDL_Texture* Sprite::GetTexture()
     {
         return texture.get();
     }
@@ -122,8 +122,8 @@ namespace Engine
         src.w = atlasW;
         src.h = atlasH;
 
-        src.x = ((float)atlasX * atlasW);
-        src.y = ((float)atlasY * atlasH);
+        src.x = ((float) atlasX * atlasW);
+        src.y = ((float) atlasY * atlasH);
 
         return src;
     }

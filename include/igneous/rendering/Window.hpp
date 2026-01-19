@@ -24,7 +24,7 @@ namespace Engine
      */
     class Window
     {
-    private:
+      private:
         /**
          * @brief The static SDL3 window instance.
          *
@@ -33,7 +33,7 @@ namespace Engine
          */
         static SDL_Window* window;
 
-    public:
+      public:
         /**
          * @brief The current viewport dimensions in pixels.
          *
@@ -49,7 +49,7 @@ namespace Engine
          */
         static Vec2<int> viewport;
 
-    public:
+      public:
         /**
          * @brief Initializes the SDL3 window with the specified dimensions.
          *

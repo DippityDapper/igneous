@@ -3,10 +3,10 @@
 #include <mutex>
 #include <optional>
 
-template <typename T>
+template<typename T>
 class ThreadSafeQueue
 {
-public:
+  public:
     void Push(const T& value)
     {
         std::lock_guard<std::mutex> lock(mutex);
@@ -30,7 +30,7 @@ public:
         return queue.empty();
     }
 
-private:
+  private:
     mutable std::mutex mutex;
     std::queue<T> queue;
 };

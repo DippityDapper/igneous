@@ -42,7 +42,9 @@ namespace Engine
         for (const auto& scene: scenes | std::views::values)
         {
             if (scene->IsActive())
+            {
                 scene->HandleEventsInternal(layer);
+            }
         }
     }
 
@@ -65,7 +67,7 @@ namespace Engine
         scenes.erase(name);
     }
 
-    bool SceneRoot::LoadScene(const std::string &name, bool unloadAll)
+    bool SceneRoot::LoadScene(const std::string& name, bool unloadAll)
     {
         if (!scenes.contains(name))
         {
@@ -87,7 +89,7 @@ namespace Engine
         return true;
     }
 
-    bool SceneRoot::UnloadScene(const std::string &name)
+    bool SceneRoot::UnloadScene(const std::string& name)
     {
         if (!scenes.contains(name))
         {
@@ -113,7 +115,7 @@ namespace Engine
         }
     }
 
-    Scene * SceneRoot::GetScene(const std::string &name)
+    Scene* SceneRoot::GetScene(const std::string& name)
     {
         if (!scenes.contains(name))
         {
@@ -123,7 +125,7 @@ namespace Engine
         return scenes[name].get();
     }
 
-    bool SceneRoot::SceneExists(const std::string &name)
+    bool SceneRoot::SceneExists(const std::string& name)
     {
         return scenes.contains(name);
     }

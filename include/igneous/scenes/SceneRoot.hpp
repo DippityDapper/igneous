@@ -4,6 +4,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "SDL3/SDL_log.h"
 #include "igneous/scenes/Scene.hpp"
 
 namespace Engine
@@ -38,7 +39,7 @@ namespace Engine
      */
     class SceneRoot
     {
-    private:
+      private:
         /**
          * @brief Map of scene names to scene instances.
          *
@@ -47,7 +48,7 @@ namespace Engine
          */
         std::unordered_map<std::string, std::unique_ptr<Scene>> scenes{};
 
-    public:
+      public:
         /**
          * @brief Initializes the SceneRoot.
          *
@@ -158,8 +159,9 @@ namespace Engine
          * sceneRoot->AddScene<UIManager>("UI", true, true); // Singleton
          * @endcode
          */
-        template<class T> requires(std::is_base_of_v<Scene, T>)
-        T* AddScene(const std::string& name, bool active=true, bool singleton=false);
+        template<class T>
+        requires(std::is_base_of_v<Scene, T>)
+        T* AddScene(const std::string& name, bool active = true, bool singleton = false);
 
         /**
          * @brief Removes a scene from the SceneRoot.
@@ -203,7 +205,7 @@ namespace Engine
          * sceneRoot->LoadScene("PauseMenu", false);
          * @endcode
          */
-        bool LoadScene(const std::string& name, bool unloadAll=true);
+        bool LoadScene(const std::string& name, bool unloadAll = true);
 
         /**
          * @brief Unloads (deactivates) a scene by name.
@@ -260,11 +262,13 @@ namespace Engine
         bool SceneExists(const std::string& name);
     };
 
-    template<class T> requires (std::is_base_of_v<Scene, T>)
-    T* SceneRoot::AddScene(const std::string &name, bool active, bool singleton)
+    template<class T>
+    requires(std::is_base_of_v<Scene, T>)
+    T* SceneRoot::AddScene(const std::string& name, bool active, bool singleton)
     {
         if (scenes.contains(name))
         {
+            SDL_Log("Scene %s already exists.", name.c_str());
             return nullptr;
         }
 
@@ -280,7 +284,6 @@ namespace Engine
             scene->SetActive(active);
 
         scenes.emplace(name, std::move(scene));
-
 
         return reinterpret_cast<T*>(scenes[name].get());
     }

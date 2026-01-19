@@ -15,7 +15,7 @@ namespace Engine
         spritesByZIndex.clear();
         spriteIterators.clear();
 
-        for (const auto& kvp : tracks)
+        for (const auto& kvp: tracks)
         {
             MIX_DestroyTrack(kvp.first);
         }
@@ -82,14 +82,14 @@ namespace Engine
         if (texturePathLookup.contains(filePath))
         {
             int id = texturePathLookup[filePath];
-            if (id >= 0 && id < (int)textures.size())
+            if (id >= 0 && id < (int) textures.size())
             {
                 if (auto existing = textures[id].lock())
                     return existing;
             }
         }
 
-        SDL_Texture *rawTexture = IMG_LoadTexture(Renderer::GetRenderer(), filePath.c_str());
+        SDL_Texture* rawTexture = IMG_LoadTexture(Renderer::GetRenderer(), filePath.c_str());
 
         if (!rawTexture)
         {
@@ -131,8 +131,7 @@ namespace Engine
                 format,
                 access,
                 w,
-                h
-        );
+                h);
         SDL_SetTextureScaleMode(rawTexture, scaleMode);
 
         std::mt19937 gen(std::random_device{}());
@@ -188,7 +187,7 @@ namespace Engine
 
     void ResourceManager::RenderSprites()
     {
-        for (const auto& it : spritesByZIndex)
+        for (const auto& it: spritesByZIndex)
         {
             if (it.second)
             {

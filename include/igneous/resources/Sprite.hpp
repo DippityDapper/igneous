@@ -57,7 +57,7 @@ namespace Engine
      */
     class Sprite
     {
-    private:
+      private:
         /**
          * @brief Shared pointer to the SDL texture.
          *
@@ -78,7 +78,7 @@ namespace Engine
          */
         int zIndex = 0;
 
-    public:
+      public:
         /**
          * @brief Unique identifier assigned by the ResourceManager.
          *
@@ -190,7 +190,7 @@ namespace Engine
          */
         float scaleY = 1.0f;
 
-    public:
+      public:
         /**
          * @brief Copy constructor that creates a sprite sharing the same texture.
          *

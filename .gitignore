@@ -2,3 +2,5 @@
 cmake-build-debug
 .cache
 build
+.clangd
+.clang-format

@@ -102,34 +102,34 @@ namespace Engine
     {
         switch (event.type)
         {
-            case ENET_EVENT_TYPE_CONNECT:
-            {
-                NetworkMessage msg;
-                msg.type = NetworkEventType::ClientConnected;
-                msg.peer = event.peer;
-                fromNetwork.Push(msg);
-                break;
-            }
-            case ENET_EVENT_TYPE_DISCONNECT:
-            {
-                NetworkMessage msg;
-                msg.type = NetworkEventType::ClientDisconnected;
-                msg.peer = event.peer;
-                fromNetwork.Push(msg);
-                break;
-            }
-            case ENET_EVENT_TYPE_RECEIVE:
-            {
-                NetworkMessage msg;
-                msg.type = NetworkEventType::Message;
-                msg.peer = event.peer;
-                msg.data.assign(event.packet->data, event.packet->data + event.packet->dataLength);
-                fromNetwork.Push(msg);
-                enet_packet_destroy(event.packet);
-                break;
-            }
-            case ENET_EVENT_TYPE_NONE:
-                break;
+        case ENET_EVENT_TYPE_CONNECT:
+        {
+            NetworkMessage msg;
+            msg.type = NetworkEventType::ClientConnected;
+            msg.peer = event.peer;
+            fromNetwork.Push(msg);
+            break;
+        }
+        case ENET_EVENT_TYPE_DISCONNECT:
+        {
+            NetworkMessage msg;
+            msg.type = NetworkEventType::ClientDisconnected;
+            msg.peer = event.peer;
+            fromNetwork.Push(msg);
+            break;
+        }
+        case ENET_EVENT_TYPE_RECEIVE:
+        {
+            NetworkMessage msg;
+            msg.type = NetworkEventType::Message;
+            msg.peer = event.peer;
+            msg.data.assign(event.packet->data, event.packet->data + event.packet->dataLength);
+            fromNetwork.Push(msg);
+            enet_packet_destroy(event.packet);
+            break;
+        }
+        case ENET_EVENT_TYPE_NONE:
+            break;
         }
     }
 
@@ -137,34 +137,34 @@ namespace Engine
     {
         switch (event.type)
         {
-            case ENET_EVENT_TYPE_CONNECT:
-            {
-                NetworkMessage msg;
-                msg.type = NetworkEventType::ClientConnected;
-                msg.peer = event.peer;
-                fromNetwork.Push(msg);
-                break;
-            }
-            case ENET_EVENT_TYPE_DISCONNECT:
-            {
-                NetworkMessage msg;
-                msg.type = NetworkEventType::ClientDisconnected;
-                msg.peer = event.peer;
-                fromNetwork.Push(msg);
-                break;
-            }
-            case ENET_EVENT_TYPE_RECEIVE:
-            {
-                NetworkMessage msg;
-                msg.type = NetworkEventType::Message;
-                msg.peer = event.peer;
-                msg.data.assign(event.packet->data, event.packet->data + event.packet->dataLength);
-                fromNetwork.Push(msg);
-                enet_packet_destroy(event.packet);
-                break;
-            }
-            case ENET_EVENT_TYPE_NONE:
-                break;
+        case ENET_EVENT_TYPE_CONNECT:
+        {
+            NetworkMessage msg;
+            msg.type = NetworkEventType::ClientConnected;
+            msg.peer = event.peer;
+            fromNetwork.Push(msg);
+            break;
+        }
+        case ENET_EVENT_TYPE_DISCONNECT:
+        {
+            NetworkMessage msg;
+            msg.type = NetworkEventType::ClientDisconnected;
+            msg.peer = event.peer;
+            fromNetwork.Push(msg);
+            break;
+        }
+        case ENET_EVENT_TYPE_RECEIVE:
+        {
+            NetworkMessage msg;
+            msg.type = NetworkEventType::Message;
+            msg.peer = event.peer;
+            msg.data.assign(event.packet->data, event.packet->data + event.packet->dataLength);
+            fromNetwork.Push(msg);
+            enet_packet_destroy(event.packet);
+            break;
+        }
+        case ENET_EVENT_TYPE_NONE:
+            break;
         }
     }
 

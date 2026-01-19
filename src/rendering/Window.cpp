@@ -5,7 +5,7 @@
 namespace Engine
 {
     SDL_Window* Window::window = nullptr;
-    Vec2<int> Window::viewport{0,0};
+    Vec2<int> Window::viewport{0, 0};
 
     void Engine::Window::Init(int w, int h)
     {

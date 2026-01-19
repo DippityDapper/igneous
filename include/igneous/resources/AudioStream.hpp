@@ -31,7 +31,7 @@ namespace Engine
      */
     class AudioStream
     {
-    public:
+      public:
         /**
          * @brief Pointer to the SDL_mixer audio data.
          *
@@ -52,7 +52,7 @@ namespace Engine
          */
         SDL_PropertiesID properties = 0;
 
-    public:
+      public:
         /**
          * @brief Constructs an AudioStream with audio data and properties.
          *

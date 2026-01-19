@@ -30,7 +30,7 @@ namespace Engine
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO();
-        (void)io;
+        (void) io;
         ImGui::StyleColorsDark();
 
         ImGui_ImplSDL3_InitForSDLRenderer(Window::GetWindow(), renderer);
@@ -64,8 +64,8 @@ namespace Engine
         float scaleX = sprite->scaleX;
         float scaleY = sprite->scaleY;
 
-        dest.w = (float)spriteW * camera->zoom * scaleX;
-        dest.h = (float)spriteH * camera->zoom * scaleY;
+        dest.w = (float) spriteW * camera->zoom * scaleX;
+        dest.h = (float) spriteH * camera->zoom * scaleY;
 
         int viewportW = Window::viewport.x;
         int viewportH = Window::viewport.y;

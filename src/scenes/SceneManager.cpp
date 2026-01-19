@@ -33,7 +33,7 @@ namespace Engine
         sceneRoot = nullptr;
     }
 
-    SceneRoot * SceneManager::GetSceneRoot()
+    SceneRoot* SceneManager::GetSceneRoot()
     {
         return sceneRoot.get();
     }

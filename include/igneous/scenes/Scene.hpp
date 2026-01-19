@@ -72,7 +72,7 @@ namespace Engine
      *         // Queue sprites/textures for rendering
      *     }
      *
-    *     void UI(InputLayer& layer) override
+     *     void UI(InputLayer& layer) override
      *     {
      *         // Render and process UI inputs.
      *         // Called before Handle Events.
@@ -98,7 +98,7 @@ namespace Engine
      */
     class Scene
     {
-    public:
+      public:
         /**
          * @brief Pointer to the owning SceneRoot.
          *
@@ -132,7 +132,7 @@ namespace Engine
          */
         bool singleton = false;
 
-    private:
+      private:
         /**
          * @brief Whether this scene is currently active.
          *
@@ -143,7 +143,7 @@ namespace Engine
          */
         bool active = false;
 
-    public:
+      public:
         /**
          * @brief Virtual destructor.
          *
@@ -240,7 +240,7 @@ namespace Engine
          */
         bool IsActive();
 
-    private:
+      private:
         /**
          * @brief Called when the scene is initialized.
          *
@@ -250,7 +250,9 @@ namespace Engine
          * @note Called once when the scene is added to the SceneRoot.
          * @note Called before the scene is set to active.
          */
-        virtual void Init(){}
+        virtual void Init()
+        {
+        }
 
         /**
          * @brief Called every frame to update game logic.
@@ -262,7 +264,9 @@ namespace Engine
          * @note Only called when the scene is active.
          * @note Do not perform rendering in this method; use Render() instead.
          */
-        virtual void Update(float delta){}
+        virtual void Update(float delta)
+        {
+        }
 
         /**
          * @brief Called every frame to process UI.
@@ -275,7 +279,9 @@ namespace Engine
          * @note Only called when the scene is active.
          * @note This is where you should place ImGui calls.
          */
-        virtual void UI(InputLayer& layer){}
+        virtual void UI(InputLayer& layer)
+        {
+        }
 
         /**
          * @brief Called every frame to render the scene.
@@ -287,7 +293,9 @@ namespace Engine
          * @note Rendering order matches scene iteration order in SceneRoot.
          * @note Sprites are automatically rendered via the ResourceManager.
          */
-        virtual void Render(){}
+        virtual void Render()
+        {
+        }
 
         /**
          * @brief Called every frame to handle input events.
@@ -302,7 +310,9 @@ namespace Engine
          *
          * @see InputLayer
          */
-        virtual void HandleEvents(InputLayer& layer){}
+        virtual void HandleEvents(InputLayer& layer)
+        {
+        }
 
         /**
          * @brief Called when the scene is being destroyed.
@@ -315,7 +325,9 @@ namespace Engine
          * @note Called automatically when the scene is removed from the SceneRoot.
          * @note Also called by the destructor as a safety measure.
          */
-        virtual void Clean(){}
+        virtual void Clean()
+        {
+        }
 
         /**
          * @brief Called when the scene's active state changes.
@@ -331,6 +343,8 @@ namespace Engine
          * @note Only called when the active state actually changes.
          * @note Not called during initialization or cleanup.
          */
-        virtual void OnActiveChanged(bool value){}
+        virtual void OnActiveChanged(bool value)
+        {
+        }
     };
 }

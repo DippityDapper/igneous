@@ -1,7 +1,5 @@
 #include "igneous/networking/LocalNetwork.hpp"
 
-#include "SDL3/SDL_log.h"
-
 namespace Engine
 {
     void LocalNetwork::Poll()

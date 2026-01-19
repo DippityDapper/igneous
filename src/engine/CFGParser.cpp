@@ -76,7 +76,7 @@ namespace Engine
             return;
         }
 
-        for (const auto& [key, value] : configs[configName])
+        for (const auto& [key, value]: configs[configName])
         {
             configFile << key << "=" << value << "\n";
         }

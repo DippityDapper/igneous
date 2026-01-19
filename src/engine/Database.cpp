@@ -11,9 +11,8 @@ namespace Engine
         try
         {
             return std::make_unique<SQLite::Database>(
-                filePath,
-                SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE
-            );
+                    filePath,
+                    SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
         }
         catch (const std::exception& e)
         {

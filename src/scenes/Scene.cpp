@@ -17,7 +17,7 @@ namespace Engine
         Update(delta);
     }
 
-    void Scene::UIInternal(InputLayer &layer)
+    void Scene::UIInternal(InputLayer& layer)
     {
         UI(layer);
     }

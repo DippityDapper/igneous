@@ -18,7 +18,7 @@ namespace Engine
     void AudioStream::Play(float gain)
     {
         MIX_Track* available = nullptr;
-        for (const auto& kvp : ResourceManager::tracks)
+        for (const auto& kvp: ResourceManager::tracks)
         {
             if (kvp.second)
             {
@@ -36,15 +36,13 @@ namespace Engine
             SDL_Log("Too many sounds playing at once!");
         }
 
-        MIX_SetTrackStoppedCallback
-        (
-            available,
-            [](void*, MIX_Track* track)
+        MIX_SetTrackStoppedCallback(
+                available,
+                [](void*, MIX_Track* track)
                 {
                     ResourceManager::tracks[track] = true;
                 },
-        nullptr
-        );
+                nullptr);
 
         if (gain > 10.0f)
             gain = 10.0f;

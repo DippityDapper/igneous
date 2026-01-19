@@ -28,7 +28,7 @@ namespace Engine
      */
     class Renderer
     {
-    private:
+      private:
         /**
          * @brief The static SDL3 renderer instance.
          *
@@ -37,7 +37,7 @@ namespace Engine
          */
         static SDL_Renderer* renderer;
 
-    public:
+      public:
         /**
          * @brief Deleted copy constructor to prevent copying.
          *

@@ -77,7 +77,7 @@ namespace Engine
      */
     class ResourceManager
     {
-    private:
+      private:
         /**
          * @brief Multimap of sprites sorted by Z-index.
          *
@@ -153,7 +153,7 @@ namespace Engine
          */
         static inline std::unordered_map<int, std::string> soundIdToPath{};
 
-    public:
+      public:
         /**
          * @brief The SDL_mixer device for audio playback.
          *
@@ -183,7 +183,7 @@ namespace Engine
          */
         static inline std::unordered_map<MIX_Track*, bool> tracks{};
 
-    public:
+      public:
         /**
          * @brief Cleans up all resources and shuts down audio systems.
          *
@@ -199,7 +199,7 @@ namespace Engine
          */
         static void Clean();
 
-    public:
+      public:
         /**
          * @brief Deleted copy constructor to prevent copying.
          *

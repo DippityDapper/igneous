@@ -8,7 +8,7 @@ namespace Engine
         priority = _priority;
     }
 
-    bool InputLayer::Is(const std::string &layerName)
+    bool InputLayer::Is(const std::string& layerName)
     {
         if (layerName == name)
         {

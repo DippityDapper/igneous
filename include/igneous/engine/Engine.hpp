@@ -36,7 +36,7 @@ namespace Engine
      */
     class Engine
     {
-    private:
+      private:
         /**
          * @brief Flag indicating whether the engine is currently running.
          *
@@ -45,7 +45,7 @@ namespace Engine
          */
         static inline bool running = true;
 
-    private:
+      private:
         /**
          * @brief Handles SDL and ImGui events, and distributes input to active scenes.
          *
@@ -138,7 +138,7 @@ namespace Engine
          */
         void Clean() const;
 
-    public:
+      public:
         /**
          * @brief Starts the engine with an initial scene.
          *
@@ -160,7 +160,8 @@ namespace Engine
          * engine->Run<MainMenuScene>("MainMenu");
          * @endcode
          */
-        template<class T> requires(std::is_base_of_v<Scene, T>)
+        template<class T>
+        requires(std::is_base_of_v<Scene, T>)
         int Run(const std::string& initialSceneName);
 
         /**
@@ -176,7 +177,8 @@ namespace Engine
         static void Quit();
     };
 
-    template<class T> requires (std::is_base_of_v<Scene, T>)
+    template<class T>
+    requires(std::is_base_of_v<Scene, T>)
     int Engine::Run(const std::string& initialSceneName)
     {
         Init();
