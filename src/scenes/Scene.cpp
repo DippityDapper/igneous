@@ -24,7 +24,7 @@ namespace Engine
 
     void Scene::RenderInternal()
     {
-        Render();
+        UI();
     }
 
     void Scene::HandleEventsInternal(InputLayer& layer)

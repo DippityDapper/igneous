@@ -45,6 +45,8 @@ namespace Engine
             }
             InputEvent& keyEvent = keyEvents[event.key.key];
             keyEvent.pressed = event.key.down;
+            if (ImGui::GetIO().WantCaptureKeyboard)
+                keyEvent.handled = true;
         }
         if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN || event.type == SDL_EVENT_MOUSE_BUTTON_UP)
         {
@@ -55,6 +57,8 @@ namespace Engine
             }
             InputEvent& mouseEvent = mouseEvents[event.button.button];
             mouseEvent.pressed = event.button.down;
+            if (ImGui::GetIO().WantCaptureMouse)
+                mouseEvent.handled = true;
         }
         if (event.type == SDL_EVENT_MOUSE_MOTION)
         {
@@ -137,8 +141,6 @@ namespace Engine
 
     bool Input::IsKeyDown(SDL_Keycode key, bool skipIfHandled)
     {
-        if (ImGui::GetIO().WantCaptureKeyboard)
-            return false;
         if (!keyEvents.contains(key))
             return false;
         if (skipIfHandled && keyEvents[key].handled)
@@ -151,8 +153,6 @@ namespace Engine
 
     bool Input::IsKeyJustPressed(SDL_Keycode key, bool skipIfHandled)
     {
-        if (ImGui::GetIO().WantCaptureKeyboard)
-            return false;
         if (!keyEvents.contains(key))
             return false;
         if (skipIfHandled && keyEvents[key].handled)
@@ -165,8 +165,6 @@ namespace Engine
 
     bool Input::IsKeyJustReleased(SDL_Keycode key)
     {
-        if (ImGui::GetIO().WantCaptureKeyboard)
-            return false;
         if (!keyEvents.contains(key))
             return false;
         if (keyEvents[key].pressed || !keyEvents[key].pressedLastFrame)
@@ -176,8 +174,6 @@ namespace Engine
 
     bool Input::IsMouseButtonDown(SDL_MouseButtonFlags mouseButton, bool skipIfHandled)
     {
-        if (ImGui::GetIO().WantCaptureMouse)
-            return false;
         if (!mouseEvents.contains(mouseButton))
             return false;
         if (skipIfHandled && mouseEvents[mouseButton].handled)
@@ -190,8 +186,6 @@ namespace Engine
 
     bool Input::IsButtonJustPressed(SDL_MouseButtonFlags mouseButton, bool skipIfHandled)
     {
-        if (ImGui::GetIO().WantCaptureMouse)
-            return false;
         if (!mouseEvents.contains(mouseButton))
             return false;
         if (skipIfHandled && mouseEvents[mouseButton].handled)
@@ -204,8 +198,6 @@ namespace Engine
 
     bool Input::IsButtonJustReleased(SDL_MouseButtonFlags mouseButton)
     {
-        if (ImGui::GetIO().WantCaptureMouse)
-            return false;
         if (!mouseEvents.contains(mouseButton))
             return false;
         if (mouseEvents[mouseButton].pressed || !mouseEvents[mouseButton].pressedLastFrame)
