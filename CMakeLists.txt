@@ -11,6 +11,7 @@ add_subdirectory(libs/SDL3_image)
 add_subdirectory(libs/SQLiteCpp)
 add_subdirectory(libs/SDL3_mixer)
 add_subdirectory(libs/enet)
+add_subdirectory(libs/pfr)
 
 set(IMGUI_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui/imgui.cpp

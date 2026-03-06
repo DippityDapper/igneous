@@ -16,3 +16,6 @@
 [submodule "libs/SDL3_mixer"]
 	path = libs/SDL3_mixer
 	url = https://github.com/libsdl-org/SDL_mixer.git
+[submodule "libs/pfr"]
+	path = libs/pfr
+	url = https://github.com/boostorg/pfr.git

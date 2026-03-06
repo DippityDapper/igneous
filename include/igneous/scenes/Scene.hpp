@@ -293,7 +293,7 @@ namespace Engine
          * @note Rendering order matches scene iteration order in SceneRoot.
          * @note Sprites are automatically rendered via the ResourceManager.
          */
-        virtual void UI()
+        virtual void Render()
         {
         }
 
