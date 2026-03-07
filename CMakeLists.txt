@@ -53,6 +53,7 @@ target_link_libraries(igneous PUBLIC
         SQLiteCpp
         imgui
         enet
+        boost_pfr
 )
 
 function(igneous_copy_runtime_dependencies TARGET_NAME)

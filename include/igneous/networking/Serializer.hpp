@@ -4,9 +4,41 @@
 #include <string>
 #include <vector>
 #include <cstring>
+#include <boost/pfr.hpp>
 
 namespace Engine
 {
+    /**
+     * @brief Concept that identifies aggregate structs eligible for automatic
+     * field-by-field serialization via Boost.PFR.
+     *
+     * A type satisfies SerializableStruct if it meets ALL of the following:
+     *
+     * 1. Aggregate:
+     *    - No user-declared constructors
+     *    - No private or protected non-static data members
+     *    - No base classes
+     *    - No virtual functions
+     *
+     * 2. Not arithmetic:
+     *    - Excludes int, float, double, bool, char, etc.
+     *
+     * 3. Not std::string (`!std::is_same_v<T, std::string>`):
+     *
+     * All fields within the struct must themselves be serializable types:
+     *    - Arithmetic types      (uint16_t, float, int64_t, etc.)
+     *    - std::string
+     *    - Nested SerializableStructs
+     *    - std::vector<T> where T is arithmetic or a SerializableStruct
+     *
+     * @note Field declaration order determines wire format order. Never reorder fields without updating all senders and receivers.
+     */
+    template<typename T>
+    concept SerializableStruct =
+            std::is_aggregate_v<T> &&
+            !std::is_arithmetic_v<T> &&
+            !std::is_same_v<T, std::string>;
+
     /**
      * @class Serializer
      * @brief Serializes data into a byte buffer.
@@ -89,6 +121,39 @@ namespace Engine
             *this << count;
             for (const auto& item: vec)
                 *this << item;
+            return *this;
+        }
+
+        /**
+         * @brief Serializes a vector of serializable structs.
+         *
+         * The vector is stored as a 32-bit length prefix followed by each element.
+         *
+         * @tparam T Serializable structure type.
+         * @param vec Vector to serialize.
+         * @return Reference to self for chaining.
+         */
+        template<SerializableStruct T>
+        Serializer& operator<<(const std::vector<T>& vec)
+        {
+            uint32_t count = static_cast<uint32_t>(vec.size());
+            *this << count;
+            for (const auto& item: vec)
+                *this << item;
+            return *this;
+        }
+
+        /**
+         * @brief Serializes a serializable struct.
+         * @tparam T Serializable structure type.
+         * @param obj Serializable structure to serialize.
+         * @return Reference to self for chaining.
+         */
+        template<SerializableStruct T>
+        Serializer& operator<<(const T& obj)
+        {
+            boost::pfr::for_each_field(obj, [this](const auto& field)
+                                       { *this << field; });
             return *this;
         }
     };
@@ -183,6 +248,40 @@ namespace Engine
             vec.resize(count);
             for (auto& item: vec)
                 *this >> item;
+            return *this;
+        }
+
+        /**
+         * @brief Deserializes a vector of serializable structs.
+         *
+         * Reads a 32-bit length prefix followed by each element.
+         *
+         * @tparam T Serializable structure type.
+         * @param vec Reference to store the deserialized vector.
+         * @return Reference to self for chaining.
+         */
+        template<SerializableStruct T>
+        Deserializer& operator>>(std::vector<T>& vec)
+        {
+            uint32_t count;
+            *this >> count;
+            vec.resize(count);
+            for (auto& item: vec)
+                *this >> item;
+            return *this;
+        }
+
+        /**
+         * @brief Deserializes a serializable struct.
+         * @tparam T Serializable structure type.
+         * @param obj Reference to store the deserialized value.
+         * @return Reference to self for chaining.
+         */
+        template<SerializableStruct T>
+        Deserializer& operator>>(T& obj)
+        {
+            boost::pfr::for_each_field(obj, [this](auto& field)
+                                       { *this >> field; });
             return *this;
         }
 

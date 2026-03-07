@@ -77,23 +77,16 @@ namespace Engine
          * @note The caller is responsible for ensuring the instance remains valid.
          */
         template<typename T>
-        static void BindMessageHandler(
-                NetworkInterface* networkInterface,
-                T* instance,
-                void (T::*callback)(const NetworkMessage&));
+        static void BindMessageHandler(NetworkInterface* networkInterface, T* instance, void (T::*callback)(const NetworkMessage&));
     };
 
     /**
      * @brief Template implementation for binding a message handler.
      */
     template<typename T>
-    void NetworkManager::BindMessageHandler(
-            NetworkInterface* networkInterface,
-            T* instance,
-            void (T::*callback)(const NetworkMessage&))
+    void NetworkManager::BindMessageHandler(NetworkInterface* networkInterface, T* instance, void (T::*callback)(const NetworkMessage&))
     {
-        networkInterface->onMessageReceived =
-                [instance, callback](const NetworkMessage& message)
+        networkInterface->onMessageReceived = [instance, callback](const NetworkMessage& message)
         {
             (instance->*callback)(message);
         };
