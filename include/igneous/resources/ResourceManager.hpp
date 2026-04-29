@@ -312,10 +312,12 @@ namespace Engine
          * them for rendering via Renderer::BufferAdd(). Only sprites with
          * render=true are rendered.
          *
+         * @param delta Delta time.
+         *
          * @note Called once per frame by the Engine after scene rendering.
          * @note Uses the sprite's position and nullptr for camera (uses Camera::main).
          */
-        static void RenderSprites();
+        static void RenderSprites(double delta);
 
         /**
          * @brief Sets the scale mode for newly loaded or created textures.

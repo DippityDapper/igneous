@@ -62,7 +62,7 @@ namespace Engine
      *         // Scene changed from active to inactive or vice versa.
      *     }
      *
-     *     void Update(float delta) override
+     *     void Update(double delta) override
      *     {
      *         // Update game logic
      *     }
@@ -173,7 +173,7 @@ namespace Engine
          *
          * @note Called once per frame by SceneRoot::Update() if the scene is active.
          */
-        void UpdateInternal(float delta);
+        void UpdateInternal(double delta);
 
         /**
          * @brief Internal UI processing wrapper.
@@ -264,7 +264,7 @@ namespace Engine
          * @note Only called when the scene is active.
          * @note Do not perform rendering in this method; use Render() instead.
          */
-        virtual void Update(float delta)
+        virtual void Update(double delta)
         {
         }
 

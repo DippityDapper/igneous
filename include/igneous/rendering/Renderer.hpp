@@ -174,6 +174,22 @@ namespace Engine
         static void BufferAdd(Vec2<float> position, Sprite* sprite);
 
         /**
+         * @brief Adds a texture to the render queue in screen space.
+         *
+         * Unlike the sprite overload, this uses the full texture dimensions
+         * without atlas or sprite-specific scaling.
+         *
+         * @param position World space position to render the texture.
+         * @param texture The SDL_Texture to render. If nullptr, the call is ignored.
+         * @param centered If true, centers the texture on the position.
+         *                 If false, renders with position as top-left corner.
+         *                 Default is true.
+         *
+         * @note Uses the texture's native dimensions (texture->w, texture->h).
+         * @note Silently fails if viewport dimensions are <= 0.
+         */
+        static void BufferAdd(Vec2<float> position, SDL_Texture* texture, bool centered = true);
+ /**
          * @brief Gets the static SDL_Renderer instance.
          *
          * Provides access to the underlying SDL renderer for advanced rendering

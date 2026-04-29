@@ -10,7 +10,7 @@ namespace Engine
     {
     }
 
-    void SceneRoot::Update(float delta)
+    void SceneRoot::Update(double delta)
     {
         for (const auto& scene: scenes | std::views::values)
         {

@@ -70,7 +70,7 @@ namespace Engine
          * @note Called once per frame by the Engine.
          * @note Scenes are updated in insertion order (map iteration order).
          */
-        void Update(float delta);
+        void Update(double delta);
 
         /**
          * @brief Processes UI for all active scenes.

@@ -12,7 +12,7 @@ namespace Engine
         Init();
     }
 
-    void Scene::UpdateInternal(float delta)
+    void Scene::UpdateInternal(double delta)
     {
         Update(delta);
     }

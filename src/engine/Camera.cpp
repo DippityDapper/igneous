@@ -30,7 +30,7 @@ namespace Engine
             main = nullptr;
     }
 
-    void Camera::UpdateInternal(float delta)
+    void Camera::UpdateInternal(double delta)
     {
         if (limitBounds && (previousPosition != position || previousZoom != zoom))
         {

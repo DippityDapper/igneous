@@ -115,7 +115,7 @@ namespace Engine
 
             Time::lastTick = Time::currentTick;
             Time::currentTick = SDL_GetTicks();
-            Time::deltaTime = (float) (Time::currentTick - Time::lastTick) / 1000.0f;
+            Time::deltaTime = (double)(Time::currentTick - Time::lastTick) / 1000;
 
             HandleEvents();
 
@@ -127,7 +127,7 @@ namespace Engine
 
             if (SceneManager::GetSceneRoot())
                 SceneManager::GetSceneRoot()->Render();
-            ResourceManager::RenderSprites();
+            ResourceManager::RenderSprites(Time::deltaTime);
 
             Renderer::Render();
         }

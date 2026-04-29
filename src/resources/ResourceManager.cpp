@@ -185,14 +185,19 @@ namespace Engine
         }
     }
 
-    void ResourceManager::RenderSprites()
+    void ResourceManager::RenderSprites(double delta)
     {
         for (const auto& it: spritesByZIndex)
         {
             if (it.second)
             {
-                if (it.second->render)
-                    Renderer::BufferAdd(it.second->position, it.second, nullptr);
+                Sprite* sprite = it.second;
+                if (sprite->render)
+                    Renderer::BufferAdd(sprite->position, sprite, nullptr);
+
+                Animation* animation = sprite->GetCurrentAnimation();
+                if (animation)
+                    animation->AddFPS(delta);
             }
         }
     }

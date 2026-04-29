@@ -136,7 +136,7 @@ namespace Engine
          *
          * @note Do not call this directly unless you are extending the engine core.
          */
-        void UpdateInternal(float delta);
+        void UpdateInternal(double delta);
 
         /**
          * @brief Internal engine event handling call.
@@ -158,7 +158,7 @@ namespace Engine
          *
          * @param delta Delta time for the current frame.
          */
-        virtual void Update(float delta) {};
+        virtual void Update(double delta) {};
 
         /**
          * @brief Virtual event handling function called every engine loop.
