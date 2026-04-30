@@ -62,6 +62,11 @@ namespace Engine
          */
         ThreadSafeQueue<NetworkMessage> fromNetwork{};
 
+        /**
+         * @brief Thread-safe queue of messages received for local bypass.
+         */
+        ThreadSafeQueue<NetworkMessage>* localBypassQueue{};
+
       private:
         /**
          * @brief Main networking loop executed on a background thread.
@@ -94,6 +99,20 @@ namespace Engine
          * Stops the networking thread and releases ENet resources.
          */
         ~RemoteNetwork() override;
+
+        /**
+         * @brief Sets the local bypass queue to the server queue.
+         *
+         * @param serverQueue Pointer to the server queue.
+         */
+        void SetLocalBypass(ThreadSafeQueue<NetworkMessage>* serverQueue);
+
+        /**
+         * @brief Gets the from network queue.
+         *
+         * @returns Pointer to the from network queue.
+         */
+        ThreadSafeQueue<NetworkMessage>* GetFromNetworkQueue();
 
         /**
          * @brief Sends data to the server.

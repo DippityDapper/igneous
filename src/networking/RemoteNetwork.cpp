@@ -2,6 +2,7 @@
 
 #include "SDL3/SDL_error.h"
 #include "SDL3/SDL_log.h"
+#include "igneous/networking/Serializer.hpp"
 
 namespace Engine
 {
@@ -79,6 +80,7 @@ namespace Engine
         if (host)
             enet_host_destroy(host);
     }
+
 
     void RemoteNetwork::NetworkLoop()
     {

@@ -193,7 +193,7 @@ namespace Engine
          * @param buf Buffer to read from.
          * @param startOffset Initial offset within the buffer (default: 1).
          */
-        explicit Deserializer(const std::vector<uint8_t>& buf, size_t startOffset = 1)
+        explicit Deserializer(const std::vector<uint8_t>& buf, size_t startOffset = 2)
             : buffer(buf), offset(startOffset)
         {
         }

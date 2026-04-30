@@ -1,7 +1,6 @@
 #include "igneous/networking/NetworkManager.hpp"
 
 #include "igneous/networking/LocalNetwork.hpp"
-#include "igneous/networking/RemoteNetwork.hpp"
 
 namespace Engine
 {

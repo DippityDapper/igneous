@@ -1,4 +1,6 @@
 #pragma once
+#include "RemoteNetwork.hpp"
+
 #include <memory>
 
 #include "igneous/networking/NetworkInterface.hpp"
@@ -29,9 +31,7 @@ namespace Engine
          * @param outServer Output unique pointer receiving the server interface.
          * @param outClient Output unique pointer receiving the client interface.
          */
-        static void CreateLocalNetwork(
-                std::unique_ptr<NetworkInterface>& outServer,
-                std::unique_ptr<NetworkInterface>& outClient);
+        static void CreateLocalNetwork(std::unique_ptr<NetworkInterface>& outServer, std::unique_ptr<NetworkInterface>& outClient);
 
         /**
          * @brief Creates a remote server network.
@@ -43,10 +43,7 @@ namespace Engine
          * @param localOnly Whether to bind only to localhost.
          * @return A unique pointer to the created NetworkInterface.
          */
-        static std::unique_ptr<NetworkInterface> CreateServer(
-                int port,
-                int maxClients,
-                bool localOnly = false);
+        static std::unique_ptr<NetworkInterface> CreateServer(int port, int maxClients, bool localOnly = false);
 
         /**
          * @brief Creates a remote client network.
@@ -58,9 +55,7 @@ namespace Engine
          * @param ip Server IP address.
          * @return A unique pointer to the created NetworkInterface.
          */
-        static std::unique_ptr<NetworkInterface> CreateClient(
-                int port,
-                const std::string& ip);
+        static std::unique_ptr<NetworkInterface> CreateClient(int port, const std::string& ip);
 
         /**
          * @brief Binds a member function as a network message handler.
