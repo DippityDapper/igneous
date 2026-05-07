@@ -8,6 +8,8 @@
 
 #include "igneous/networking/NetworkEvents.hpp"
 
+#include <queue>
+
 namespace Engine
 {
     /**
@@ -23,6 +25,9 @@ namespace Engine
      */
     class NetworkInterface
     {
+      protected:
+        NetworkInterface* loopbackPeer = nullptr;
+
       public:
         /**
          * @brief Callback invoked when a network message is received.
@@ -33,6 +38,8 @@ namespace Engine
          * @note The callback is optional and may be unset.
          */
         std::function<void(const NetworkMessage&)> onMessageReceived;
+
+        std::queue<NetworkMessage> loopbackMessages{};
 
       public:
         /**
@@ -56,11 +63,11 @@ namespace Engine
          *
          * Typically only valid for server implementations.
          *
-         * @param peer Target ENet peer.
+         * @param peerId Target peer id.
          * @param data Payload to send.
          * @param flags ENet packet flags.
          */
-        virtual void SendToClient(ENetPeer* peer, const std::vector<uint8_t>& data, enet_uint32 flags) = 0;
+        virtual void SendToClient(uint32_t peerId, const std::vector<uint8_t>& data, enet_uint32 flags) = 0;
 
         /**
          * @brief Processes pending network events.
@@ -76,5 +83,12 @@ namespace Engine
          * @return true if connected or running, false otherwise.
          */
         virtual bool Connected() = 0;
+
+        virtual void Clean() = 0;
+
+        void SetLoopbackPeer(NetworkInterface* _loopbackPeer)
+        {
+            loopbackPeer = _loopbackPeer;
+        }
     };
 }

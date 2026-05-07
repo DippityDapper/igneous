@@ -9,8 +9,7 @@ namespace Engine
 {
     bool Input::Init()
     {
-        AddInputLayer("gameplay", 0);
-        AddInputLayer("ui", 1);
+        AddInputLayer("_default", 0);
         return true;
     }
 
@@ -80,35 +79,33 @@ namespace Engine
 
     bool Input::AddInputLayer(const std::string& layerName, int priority)
     {
-        if (layerLookup.contains(layerName))
+        if (layers.contains(layerName))
         {
             SDL_Log("Layer %s already exists", layerName.c_str());
             return false;
         }
 
-        InputLayer inputLayer{layerName, priority};
-        auto it = layers.emplace(priority, inputLayer);
-        layerLookup[layerName] = it;
+        layers.emplace(layerName, std::make_unique<InputLayer>(layerName, priority));
         return true;
     }
 
     bool Input::RemoveInputLayer(const std::string& layerName)
     {
-        auto it = layerLookup.find(layerName);
-        if (it == layerLookup.end())
-        {
-            SDL_Log("Layer %s does not exist", layerName.c_str());
+        if (!layers.contains(layerName))
             return false;
-        }
 
-        layers.erase(it->second);
-        layerLookup.erase(it);
+        layers.erase(layerName);
         return true;
     }
 
-    std::multimap<int, InputLayer, std::greater<>> Input::GetInputLayers()
+    std::vector<InputLayer*> Input::GetInputLayers()
     {
-        return layers;
+        std::vector<InputLayer*> _layers{};
+        for (const auto& layer: layers | std::views::values)
+        {
+            _layers.push_back(layer.get());
+        }
+        return _layers;
     }
 
     void Input::HandleKey(SDL_Keycode key)

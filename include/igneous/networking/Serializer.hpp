@@ -4,157 +4,138 @@
 #include <string>
 #include <vector>
 #include <cstring>
-#include <boost/pfr.hpp>
+#include <functional>
+#include <stdexcept>
 
 namespace Engine
 {
     /**
-     * @brief Concept that identifies aggregate structs eligible for automatic
-     * field-by-field serialization via Boost.PFR.
-     *
-     * A type satisfies SerializableStruct if it meets ALL of the following:
-     *
-     * 1. Aggregate:
-     *    - No user-declared constructors
-     *    - No private or protected non-static data members
-     *    - No base classes
-     *    - No virtual functions
-     *
-     * 2. Not arithmetic:
-     *    - Excludes int, float, double, bool, char, etc.
-     *
-     * 3. Not std::string (`!std::is_same_v<T, std::string>`):
-     *
-     * All fields within the struct must themselves be serializable types:
-     *    - Arithmetic types      (uint16_t, float, int64_t, etc.)
-     *    - std::string
-     *    - Nested SerializableStructs
-     *    - std::vector<T> where T is arithmetic or a SerializableStruct
-     *
-     * @note Field declaration order determines wire format order. Never reorder fields without updating all senders and receivers.
-     */
-    template<typename T>
-    concept SerializableStruct =
-            std::is_aggregate_v<T> &&
-            !std::is_arithmetic_v<T> &&
-            !std::is_same_v<T, std::string>;
-
-    /**
      * @class Serializer
-     * @brief Serializes data into a byte buffer.
+     * @brief Serializes data into an owned byte buffer.
      *
-     * Serializer allows writing arithmetic types, strings, and vectors into
-     * a contiguous byte buffer. This is typically used for network transmission
-     * or file storage.
+     * Mirrors the C# Serializer API: explicit Write() overloads per type,
+     * and a callback-based Write() for collections.
      *
      * Example usage:
      * @code
-     * std::vector<uint8_t> buffer;
-     * Serializer ser(buffer);
-     * int x = 42;
-     * std::string name = "Player";
-     * ser << x << name;
+     * Serializer ser;
+     * ser.Write((int32_t)42).Write(std::string("Player"));
+     * std::vector<uint8_t> bytes = ser.GetBytes();
      * @endcode
      */
     class Serializer
     {
       private:
-        /**
-         * @brief Buffer to write serialized data into
-         */
-        std::vector<uint8_t>& buffer;
+        std::vector<uint8_t> _buffer;
 
-      public:
-        /**
-         * @brief Constructs a Serializer targeting the given buffer.
-         * @param buf Buffer to append serialized bytes to.
-         */
-        explicit Serializer(std::vector<uint8_t>& buf) : buffer(buf)
-        {
-        }
-
-        /**
-         * @brief Serializes an arithmetic value (int, float, etc.).
-         * @tparam T Numeric type.
-         * @param value Value to serialize.
-         * @return Reference to self for chaining.
-         */
         template<typename T>
         requires std::is_arithmetic_v<T>
-        Serializer& operator<<(const T& value)
+        Serializer& WriteRaw(T value)
         {
             const uint8_t* bytes = reinterpret_cast<const uint8_t*>(&value);
-            buffer.insert(buffer.end(), bytes, bytes + sizeof(T));
+            _buffer.insert(_buffer.end(), bytes, bytes + sizeof(T));
             return *this;
         }
 
-        /**
-         * @brief Serializes a string.
-         *
-         * The string is stored as a 32-bit length prefix followed by the characters.
-         *
-         * @param str String to serialize.
-         * @return Reference to self for chaining.
-         */
-        Serializer& operator<<(const std::string& str)
+      public:
+        Serializer& Write(bool value)
         {
-            uint32_t len = str.size();
-            *this << len;
-            buffer.insert(buffer.end(), str.begin(), str.end());
+            return WriteRaw(value);
+        }
+        Serializer& Write(uint8_t value)
+        {
+            return WriteRaw(value);
+        }
+        Serializer& Write(int16_t value)
+        {
+            return WriteRaw(value);
+        }
+        Serializer& Write(uint16_t value)
+        {
+            return WriteRaw(value);
+        }
+        Serializer& Write(int32_t value)
+        {
+            return WriteRaw(value);
+        }
+        Serializer& Write(uint32_t value)
+        {
+            return WriteRaw(value);
+        }
+        Serializer& Write(int64_t value)
+        {
+            return WriteRaw(value);
+        }
+        Serializer& Write(uint64_t value)
+        {
+            return WriteRaw(value);
+        }
+        Serializer& Write(float value)
+        {
+            return WriteRaw(value);
+        }
+        Serializer& Write(double value)
+        {
+            return WriteRaw(value);
+        }
+
+        /**
+         * @brief Serializes a string as a 32-bit length prefix followed by UTF-8 bytes.
+         *
+         * @note Matches C#'s BinaryWriter.Write(string) 7-bit encoded length prefix for
+         * ASCII/short strings, but here we use a flat uint32 for simplicity and
+         * cross-language compatibility. Keep senders and receivers in sync.
+         */
+        Serializer& Write(const std::string& value)
+        {
+            Write(static_cast<uint32_t>(value.size()));
+            _buffer.insert(_buffer.end(), value.begin(), value.end());
             return *this;
         }
 
         /**
-         * @brief Serializes a vector of arithmetic values.
+         * @brief Serializes a byte array as a 32-bit length prefix followed by raw bytes.
+         */
+        Serializer& Write(const std::vector<uint8_t>& value)
+        {
+            Write(static_cast<int32_t>(value.size()));
+            _buffer.insert(_buffer.end(), value.begin(), value.end());
+            return *this;
+        }
+
+        /**
+         * @brief Serializes a list of T using a caller-supplied write callback.
          *
-         * The vector is stored as a 32-bit length prefix followed by each element.
+         * The list is stored as a 32-bit element count followed by each element
+         * as written by writeItem.
          *
-         * @tparam T Numeric type.
-         * @param vec Vector to serialize.
-         * @return Reference to self for chaining.
+         * Example:
+         * @code
+         * std::vector<Player> players = ...;
+         * ser.Write<Player>(players, [&](const Player& p) {
+         *     ser.Write(p.name).Write(p.score);
+         * });
+         * @endcode
+         *
+         * @tparam T Element type.
+         * @param list  Collection to serialize.
+         * @param writeItem Callback invoked once per element.
          */
         template<typename T>
-        requires std::is_arithmetic_v<T>
-        Serializer& operator<<(const std::vector<T>& vec)
+        Serializer& Write(const std::vector<T>& list, std::function<void(const T&)> writeItem)
         {
-            uint32_t count = vec.size();
-            *this << count;
-            for (const auto& item: vec)
-                *this << item;
+            Write(static_cast<int32_t>(list.size()));
+            for (const T& item: list)
+                writeItem(item);
             return *this;
         }
 
         /**
-         * @brief Serializes a vector of serializable structs.
-         *
-         * The vector is stored as a 32-bit length prefix followed by each element.
-         *
-         * @tparam T Serializable structure type.
-         * @param vec Vector to serialize.
-         * @return Reference to self for chaining.
+         * @brief Returns a copy of the serialized bytes.
          */
-        template<SerializableStruct T>
-        Serializer& operator<<(const std::vector<T>& vec)
+        std::vector<uint8_t> GetBytes() const
         {
-            uint32_t count = static_cast<uint32_t>(vec.size());
-            *this << count;
-            for (const auto& item: vec)
-                *this << item;
-            return *this;
-        }
-
-        /**
-         * @brief Serializes a serializable struct.
-         * @tparam T Serializable structure type.
-         * @param obj Serializable structure to serialize.
-         * @return Reference to self for chaining.
-         */
-        template<SerializableStruct T>
-        Serializer& operator<<(const T& obj)
-        {
-            boost::pfr::for_each_field(obj, [this](const auto& field)
-                                       { *this << field; });
-            return *this;
+            return _buffer;
         }
     };
 
@@ -162,136 +143,141 @@ namespace Engine
      * @class Deserializer
      * @brief Deserializes data from a byte buffer.
      *
-     * Deserializer allows reading arithmetic types, strings, and vectors from
-     * a previously serialized buffer. It maintains an internal offset
-     * to track the current read position.
+     * Mirrors the C# Deserializer API: explicit ReadXxx() methods per type,
+     * and a callback-based ReadList() for collections.
      *
      * Example usage:
      * @code
      * Deserializer des(buffer);
-     * int x;
-     * std::string name;
-     * des >> x >> name;
+     * int32_t x  = des.ReadInt();
+     * std::string name = des.ReadString();
      * @endcode
      */
     class Deserializer
     {
       private:
-        /**
-         * @brief Buffer to read serialized data from
-         */
-        const std::vector<uint8_t>& buffer;
+        const std::vector<uint8_t>& _buffer;
+        size_t _offset;
 
-        /**
-         * @brief Current read position
-         */
-        size_t offset;
+        template<typename T>
+        requires std::is_arithmetic_v<T>
+        T ReadRaw()
+        {
+            if (_offset + sizeof(T) > _buffer.size())
+                throw std::out_of_range("Deserializer: read past end of buffer");
+            T value;
+            std::memcpy(&value, &_buffer[_offset], sizeof(T));
+            _offset += sizeof(T);
+            return value;
+        }
 
       public:
-        /**
-         * @brief Constructs a Deserializer for a given buffer.
-         * @param buf Buffer to read from.
-         * @param startOffset Initial offset within the buffer (default: 1).
-         */
         explicit Deserializer(const std::vector<uint8_t>& buf, size_t startOffset = 2)
-            : buffer(buf), offset(startOffset)
+            : _buffer(buf), _offset(startOffset)
         {
         }
 
+        bool ReadBool()
+        {
+            return ReadRaw<bool>();
+        }
+        uint8_t ReadByte()
+        {
+            return ReadRaw<uint8_t>();
+        }
+        int16_t ReadShort()
+        {
+            return ReadRaw<int16_t>();
+        }
+        uint16_t ReadUShort()
+        {
+            return ReadRaw<uint16_t>();
+        }
+        int32_t ReadInt()
+        {
+            return ReadRaw<int32_t>();
+        }
+        uint32_t ReadUInt()
+        {
+            return ReadRaw<uint32_t>();
+        }
+        int64_t ReadLong()
+        {
+            return ReadRaw<int64_t>();
+        }
+        uint64_t ReadULong()
+        {
+            return ReadRaw<uint64_t>();
+        }
+        float ReadFloat()
+        {
+            return ReadRaw<float>();
+        }
+        double ReadDouble()
+        {
+            return ReadRaw<double>();
+        }
+
         /**
-         * @brief Deserializes an arithmetic value (int, float, etc.).
-         * @tparam T Numeric type.
-         * @param value Reference to store the deserialized value.
-         * @return Reference to self for chaining.
+         * @brief Deserializes a string from a 32-bit length prefix followed by UTF-8 bytes.
+         */
+        std::string ReadString()
+        {
+            uint32_t len = ReadUInt();
+            if (_offset + len > _buffer.size())
+                throw std::out_of_range("Deserializer: string read past end of buffer");
+            std::string str(reinterpret_cast<const char*>(&_buffer[_offset]), len);
+            _offset += len;
+            return str;
+        }
+
+        /**
+         * @brief Deserializes a byte array from a 32-bit length prefix followed by raw bytes.
+         */
+        std::vector<uint8_t> ReadBytes()
+        {
+            int32_t count = ReadInt();
+            if (count < 0 || _offset + count > _buffer.size())
+                throw std::out_of_range("Deserializer: byte array read past end of buffer");
+            std::vector<uint8_t> bytes(&_buffer[_offset], &_buffer[_offset] + count);
+            _offset += count;
+            return bytes;
+        }
+
+        /**
+         * @brief Deserializes a list of T using a caller-supplied read callback.
+         *
+         * Reads a 32-bit element count, then invokes readItem() that many times
+         * to populate the returned vector.
+         *
+         * Example:
+         * @code
+         * auto players = des.ReadList<Player>([&]() {
+         *     Player p;
+         *     p.name  = des.ReadString();
+         *     p.score = des.ReadInt();
+         *     return p;
+         * });
+         * @endcode
+         *
+         * @tparam T Element type.
+         * @param readItem Callback invoked once per element, returning T.
+         * @return Populated vector of T.
          */
         template<typename T>
-        requires std::is_arithmetic_v<T>
-        Deserializer& operator>>(T& value)
+        std::vector<T> ReadList(std::function<T()> readItem)
         {
-            std::memcpy(&value, &buffer[offset], sizeof(T));
-            offset += sizeof(T);
-            return *this;
+            int32_t count = ReadInt();
+            std::vector<T> list;
+            list.reserve(count);
+            for (int32_t i = 0; i < count; i++)
+                list.push_back(readItem());
+            return list;
         }
 
-        /**
-         * @brief Deserializes a string.
-         *
-         * Reads a 32-bit length prefix followed by the characters.
-         *
-         * @param str Reference to store the deserialized string.
-         * @return Reference to self for chaining.
-         */
-        Deserializer& operator>>(std::string& str)
-        {
-            uint32_t len;
-            *this >> len;
-            str.assign(reinterpret_cast<const char*>(&buffer[offset]), len);
-            offset += len;
-            return *this;
-        }
-
-        /**
-         * @brief Deserializes a vector of arithmetic values.
-         *
-         * Reads a 32-bit length prefix followed by each element.
-         *
-         * @tparam T Numeric type.
-         * @param vec Reference to store the deserialized vector.
-         * @return Reference to self for chaining.
-         */
-        template<typename T>
-        requires std::is_arithmetic_v<T>
-        Deserializer& operator>>(std::vector<T>& vec)
-        {
-            uint32_t count;
-            *this >> count;
-            vec.resize(count);
-            for (auto& item: vec)
-                *this >> item;
-            return *this;
-        }
-
-        /**
-         * @brief Deserializes a vector of serializable structs.
-         *
-         * Reads a 32-bit length prefix followed by each element.
-         *
-         * @tparam T Serializable structure type.
-         * @param vec Reference to store the deserialized vector.
-         * @return Reference to self for chaining.
-         */
-        template<SerializableStruct T>
-        Deserializer& operator>>(std::vector<T>& vec)
-        {
-            uint32_t count;
-            *this >> count;
-            vec.resize(count);
-            for (auto& item: vec)
-                *this >> item;
-            return *this;
-        }
-
-        /**
-         * @brief Deserializes a serializable struct.
-         * @tparam T Serializable structure type.
-         * @param obj Reference to store the deserialized value.
-         * @return Reference to self for chaining.
-         */
-        template<SerializableStruct T>
-        Deserializer& operator>>(T& obj)
-        {
-            boost::pfr::for_each_field(obj, [this](auto& field)
-                                       { *this >> field; });
-            return *this;
-        }
-
-        /**
-         * @brief Returns the current read offset in the buffer.
-         * @return Current offset as a size_t.
-         */
         size_t GetOffset() const
         {
-            return offset;
+            return _offset;
         }
     };
 }

@@ -50,7 +50,7 @@ namespace Engine
                 BoundsCheck();
             }
         }
-        HandleEvents(layer);
+        HandleInputs(layer);
     }
 
     bool Camera::IsWithinBounds(Vec2<float> _position)
@@ -58,7 +58,7 @@ namespace Engine
         if (!limitBounds)
             return true;
 
-        Vec2<float> offset = (Vec2<float>) Window::viewport / 2.0f / zoom;
+        Vec2<float> offset = static_cast<Vec2<float>>(Window::viewport) / 2.0f / zoom;
         if (_position.x < limitLeft + offset.x)
             return false;
         if (_position.x > limitRight - offset.x)
@@ -79,7 +79,7 @@ namespace Engine
     {
         Vec2<float> newPos = targetPosition;
 
-        Vec2<float> offset = (Vec2<float>) Window::viewport / 2.0f / targetZoom;
+        Vec2<float> offset = static_cast<Vec2<float>>(Window::viewport) / 2.0f / targetZoom;
         if (targetPosition.x < limitLeft + offset.x)
             newPos.x = limitLeft + offset.x;
         if (targetPosition.x > limitRight - offset.x)
@@ -96,8 +96,8 @@ namespace Engine
         float worldWidth = limitRight - limitLeft;
         float worldHeight = limitBottom - limitTop;
 
-        float maxZoomOutX = (float) Window::viewport.x / worldWidth;
-        float maxZoomOutY = (float) Window::viewport.y / worldHeight;
+        float maxZoomOutX = static_cast<float>(Window::viewport.x) / worldWidth;
+        float maxZoomOutY = static_cast<float>(Window::viewport.y) / worldHeight;
         float maxAllowedZoomOut = std::max(maxZoomOutX, maxZoomOutY);
 
         if (targetZoom < maxAllowedZoomOut)
@@ -107,8 +107,8 @@ namespace Engine
 
     Vec2<float> Camera::GetMouseGlobalPosition()
     {
-        float viewportX = (float) Window::viewport.x;
-        float viewportY = (float) Window::viewport.y;
+        float viewportX = static_cast<float>(Window::viewport.x);
+        float viewportY = static_cast<float>(Window::viewport.y);
 
         float screenOffsetX = viewportX / 2.0f;
         float screenOffsetY = viewportY / 2.0f;

@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <string>
 #include <thread>
+#include <unordered_map>
 #include <vector>
 
 #include "enet/enet.h"
@@ -23,57 +24,38 @@ namespace Engine
      *
      * Network events are translated into NetworkMessage objects and queued
      * for processing via Poll().
-     *
-     * @see Engine::NetworkManager::CreateServer() For creating a RemoteNetwork
-     * server.
-     * @see Engine::NetworkManager::CreateClient() For creating a RemoteNetwork
-     * client.
      */
     class RemoteNetwork : public NetworkInterface
     {
       private:
-        /**
-         * @brief Whether this instance is running as a server.
-         */
-        bool isServer = false;
+        bool _isServer = false;
+        bool _running = false;
+        bool _connecting = false;
 
-        /**
-         * @brief Whether the networking thread is active.
-         */
-        bool running = false;
+        ENetHost* _host = nullptr;
+        ENetPeer* _serverPeer = nullptr;
 
-        /**
-         * @brief ENet host instance.
-         */
-        ENetHost* host = nullptr;
+        std::unordered_map<uint32_t, ENetPeer*> _peerLookup;
+        std::unordered_map<ENetPeer*, uint32_t> _peerIdLookup;
+        uint32_t _nextPeerId = 1;
 
-        /**
-         * @brief Server peer (client mode only).
-         */
-        ENetPeer* serverPeer = nullptr;
+        std::thread _networkThread;
 
-        /**
-         * @brief Background thread handling ENet events.
-         */
-        std::thread networkThread;
+        ThreadSafeQueue<NetworkMessage> _fromNetwork{};
 
-        /**
-         * @brief Thread-safe queue of messages received from the network.
-         */
-        ThreadSafeQueue<NetworkMessage> fromNetwork{};
+        int _port = -1;
 
-        /**
-         * @brief Thread-safe queue of messages received for local bypass.
-         */
-        ThreadSafeQueue<NetworkMessage>* localBypassQueue{};
+        static const std::vector<uint8_t> PingPacket;
+        double _lastPingTime = 0.0;
+        double _lastPingSend = 0.0;
+        static constexpr double PingTimeout = 5.0;
 
       private:
-        /**
-         * @brief Main networking loop executed on a background thread.
-         *
-         * Polls ENet events and dispatches them to the appropriate handlers.
-         */
         void NetworkLoop();
+        void ServerPing(double now);
+        bool ClientTimeout(double now);
+
+        double GetTime() const;
 
       public:
         /**
@@ -94,82 +76,22 @@ namespace Engine
         RemoteNetwork(int port, const std::string& ip);
 
         /**
-         * @brief Destructor.
-         *
-         * Stops the networking thread and releases ENet resources.
+         * @brief Constructs a loopback-only client (no real connection).
+         */
+        RemoteNetwork();
+
+        /**
+         * @brief Destructor. Calls Clean().
          */
         ~RemoteNetwork() override;
 
-        /**
-         * @brief Sets the local bypass queue to the server queue.
-         *
-         * @param serverQueue Pointer to the server queue.
-         */
-        void SetLocalBypass(ThreadSafeQueue<NetworkMessage>* serverQueue);
-
-        /**
-         * @brief Gets the from network queue.
-         *
-         * @returns Pointer to the from network queue.
-         */
-        ThreadSafeQueue<NetworkMessage>* GetFromNetworkQueue();
-
-        /**
-         * @brief Sends data to the server.
-         *
-         * Valid only when operating in client mode.
-         *
-         * @param data Payload to send.
-         * @param flags ENet packet flags.
-         */
-        void SendToServer(const std::vector<uint8_t>& data, enet_uint32 flags) override;
-
-        /**
-         * @brief Sends data to a specific client.
-         *
-         * Valid only when operating in server mode.
-         *
-         * @param peer Target client peer.
-         * @param data Payload to send.
-         * @param flags ENet packet flags.
-         */
-        void SendToClient(ENetPeer* peer, const std::vector<uint8_t>& data, enet_uint32 flags) override;
-
-        /**
-         * @brief Processes queued network messages.
-         *
-         * Delivers messages from the networking thread via onMessageReceived.
-         */
-        void Poll() override;
-
-        /**
-         * @brief Checks whether the network is running.
-         *
-         * @return true if the networking thread is active.
-         */
-        bool Connected() override;
-
-        /**
-         * @brief Handles ENet events in server mode.
-         *
-         * @param event ENet event to process.
-         */
         void HandleServerEvent(const ENetEvent& event);
-
-        /**
-         * @brief Handles ENet events in client mode.
-         *
-         * @param event ENet event to process.
-         */
         void HandleClientEvent(const ENetEvent& event);
 
-        /**
-         * @brief Sends a raw packet to a peer.
-         *
-         * @param peer Target peer.
-         * @param data Packet payload.
-         * @param packetType ENet packet flags.
-         */
-        void SendPacket(ENetPeer* peer, std::vector<uint8_t> data, enet_uint32 packetType);
+        void SendToServer(const std::vector<uint8_t>& data, enet_uint32 flags) override;
+        void SendToClient(uint32_t peerId, const std::vector<uint8_t>& data, enet_uint32 flags) override;
+        void Poll() override;
+        bool Connected() override;
+        void Clean() override;
     };
 }

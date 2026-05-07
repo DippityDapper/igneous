@@ -2,42 +2,54 @@
 
 namespace Engine
 {
+    LocalNetwork::LocalNetwork(bool _isServer)
+    {
+        isServer = _isServer;
+        NetworkMessage msg{NetworkEventType::ConnectionSuccess};
+        loopbackMessages.emplace(msg);
+    }
+
     void LocalNetwork::Poll()
     {
-        while (!incomingMessages.empty() && onMessageReceived)
+        while (!loopbackMessages.empty() && onMessageReceived)
         {
-            onMessageReceived(incomingMessages.front());
-            incomingMessages.pop();
+            onMessageReceived(loopbackMessages.front());
+            loopbackMessages.pop();
         }
     }
 
     bool LocalNetwork::Connected()
     {
-        return networkPeer != nullptr;
+        return loopbackPeer != nullptr;
     }
 
-    void LocalNetwork::SetPeer(LocalNetwork* peer)
+    void LocalNetwork::Clean()
     {
-        networkPeer = peer;
     }
 
     void LocalNetwork::SendToServer(const std::vector<uint8_t>& data, enet_uint32 flags)
     {
+        if (isServer)
+            return;
+
         NetworkMessage msg;
         msg.type = NetworkEventType::Message;
-        msg.peer = nullptr;
+        msg.peerId = 0;
         msg.data = data;
         msg.flags = flags;
-        networkPeer->incomingMessages.push(msg);
+        loopbackPeer->loopbackMessages.push(msg);
     }
 
-    void LocalNetwork::SendToClient(ENetPeer* peer, const std::vector<uint8_t>& data, enet_uint32 flags)
+    void LocalNetwork::SendToClient(uint32_t peerId, const std::vector<uint8_t>& data, enet_uint32 flags)
     {
+        if (!isServer)
+            return;
+
         NetworkMessage msg;
         msg.type = NetworkEventType::Message;
-        msg.peer = peer;
+        msg.peerId = peerId;
         msg.data = data;
         msg.flags = flags;
-        networkPeer->incomingMessages.push(msg);
+        loopbackPeer->loopbackMessages.push(msg);
     }
 }

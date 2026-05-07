@@ -73,22 +73,6 @@ namespace Engine
         void Update(double delta);
 
         /**
-         * @brief Processes UI for all active scenes.
-         *
-         * Iterates through all scenes and calls UIInternal() on each active
-         * scene for the given input layer. Used for ImGui and other UI systems.
-         *
-         * @param layer The input layer to process UI for.
-         *
-         * @note Only active scenes process UI.
-         * @note Called once per frame by the Engine during event handling.
-         * @note Scenes process UI in insertion order.
-         *
-         * @see InputLayer
-         */
-        void UI(InputLayer& layer);
-
-        /**
          * @brief Renders all active scenes.
          *
          * Iterates through all scenes and calls RenderInternal() on each active
@@ -277,7 +261,7 @@ namespace Engine
         scene->name = name;
         scene->singleton = singleton;
 
-        scene->InitInternal();
+        scene->OnCreatedInternal();
         if (scene->singleton)
             scene->SetActive(true);
         else

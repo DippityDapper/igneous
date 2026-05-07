@@ -9,6 +9,9 @@
 #include "igneous/input/InputLayer.hpp"
 #include "SDL3/SDL_events.h"
 
+#include <memory>
+#include <vector>
+
 namespace Engine
 {
     /**
@@ -59,14 +62,7 @@ namespace Engine
          * Layers are stored with priority as the key, allowing multiple layers
          * with the same priority. Uses std::greater<> for descending order.
          */
-        static inline std::multimap<int, InputLayer, std::greater<>> layers{};
-
-        /**
-         * @brief Lookup map for quick access to layer iterators by name.
-         *
-         * Allows O(1) layer removal and existence checks by name.
-         */
-        static inline std::unordered_map<std::string, std::multimap<int, InputLayer, std::greater<>>::iterator> layerLookup{};
+        static inline std::map<std::string, std::unique_ptr<InputLayer>> layers{};
 
         /**
          * @brief Map of keyboard key states.
@@ -216,7 +212,7 @@ namespace Engine
          *
          * @note Returns a copy, not a reference.
          */
-        static std::multimap<int, InputLayer, std::greater<>> GetInputLayers();
+        static std::vector<InputLayer*> GetInputLayers();
 
         /**
          * @brief Marks a key as handled (consumed).

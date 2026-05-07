@@ -4,3 +4,4 @@ cmake-build-debug
 build
 .clangd
 .clang-format
+libs/steamworks/

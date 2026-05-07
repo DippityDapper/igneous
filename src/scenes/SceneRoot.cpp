@@ -19,15 +19,6 @@ namespace Engine
         }
     }
 
-    void SceneRoot::UI(InputLayer& layer)
-    {
-        for (const auto& scene: scenes | std::views::values)
-        {
-            if (scene->IsActive())
-                scene->UIInternal(layer);
-        }
-    }
-
     void SceneRoot::Render()
     {
         for (const auto& scene: scenes | std::views::values)
@@ -43,7 +34,7 @@ namespace Engine
         {
             if (scene->IsActive())
             {
-                scene->HandleEventsInternal(layer);
+                scene->HandleInputsInternal(layer);
             }
         }
     }
@@ -51,7 +42,7 @@ namespace Engine
     void SceneRoot::Clean()
     {
         for (const auto& scene: scenes | std::views::values)
-            scene->CleanInternal();
+            scene->OnDestroyInternal();
         scenes.clear();
     }
 
@@ -63,7 +54,7 @@ namespace Engine
             return;
         }
         Scene* scene = scenes[name].get();
-        scene->CleanInternal();
+        scene->OnDestroyInternal();
         scenes.erase(name);
     }
 

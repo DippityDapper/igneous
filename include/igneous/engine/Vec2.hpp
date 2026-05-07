@@ -248,8 +248,8 @@ namespace Engine
          */
         Vec2<int> Ceil() const
         {
-            int dx = (int) std::ceil(x);
-            int dy = (int) std::ceil(y);
+            int dx = static_cast<int>(std::ceil(x));
+            int dy = static_cast<int>(std::ceil(y));
             return {dx, dy};
         }
 
@@ -260,8 +260,8 @@ namespace Engine
          */
         Vec2<int> Floor() const
         {
-            int dx = (int) std::floor(x);
-            int dy = (int) std::floor(y);
+            int dx = static_cast<int>(std::floor(x));
+            int dy = static_cast<int>(std::floor(y));
             return {dx, dy};
         }
 

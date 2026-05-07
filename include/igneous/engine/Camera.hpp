@@ -167,7 +167,7 @@ namespace Engine
          *
          * @param layer Input layer containing event data.
          */
-        virtual void HandleEvents(InputLayer& layer) {};
+        virtual void HandleInputs(InputLayer& layer) {};
 
         /**
          * @brief Sets this camera as the main camera.

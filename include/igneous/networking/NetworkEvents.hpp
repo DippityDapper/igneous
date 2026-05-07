@@ -19,22 +19,28 @@ namespace Engine
         /**
          * @brief A standard network message containing data.
          */
-        Message = 0,
+        Message,
+
+        Ping,
 
         /**
          * @brief Indicates that a client has connected.
          */
-        ClientConnected = 1,
+        ClientConnected,
 
         /**
          * @brief Indicates that a client has disconnected.
          */
-        ClientDisconnected = 2,
+        ClientDisconnected,
 
         /**
          * @brief Indicates that the server has disconnected.
          */
-        ServerDisconnected = 3
+        ServerDisconnected,
+
+        ConnectionSuccess,
+
+        ConnectionFailure
     };
 
     /**
@@ -60,7 +66,7 @@ namespace Engine
          * @brief ENet peer associated with the message, or nullptr for
          * server-originated messages.
          */
-        ENetPeer* peer = nullptr;
+        uint32_t peerId = 0;
 
         /**
          * @brief Payload data for Message events.
@@ -70,6 +76,6 @@ namespace Engine
         /**
          * @brief Flags associated with ENet packet transmission (ENet packet types).
          */
-        enet_uint32 flags = 0;
+        uint32_t flags = 0;
     };
 }

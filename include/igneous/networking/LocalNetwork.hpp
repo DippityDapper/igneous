@@ -22,33 +22,15 @@ namespace Engine
     class LocalNetwork : public NetworkInterface
     {
       private:
-        /**
-         * @brief Queue of incoming network messages.
-         */
-        std::queue<NetworkMessage> incomingMessages;
-
-        /**
-         * @brief Paired LocalNetwork instance.
-         *
-         * Messages sent through this network are delivered to the peer's
-         * incoming message queue.
-         */
-        LocalNetwork* networkPeer = nullptr;
+        bool isServer = false;
 
       public:
+        explicit LocalNetwork(bool _isServer);
+
         /**
          * @brief Destructor.
          */
         ~LocalNetwork() override = default;
-
-        /**
-         * @brief Sets the peer network instance.
-         *
-         * Establishes a bidirectional link between two LocalNetwork instances.
-         *
-         * @param peer The peer network to communicate with.
-         */
-        void SetPeer(LocalNetwork* peer);
 
         /**
          * @brief Sends data to the server.
@@ -67,11 +49,11 @@ namespace Engine
          * Pushes a message into the peer's incoming queue with an associated
          * ENet peer pointer.
          *
-         * @param peer Logical peer associated with the message.
+         * @param peerId Logical peer associated with the message.
          * @param data Payload to send.
          * @param flags Message flags.
          */
-        void SendToClient(ENetPeer* peer, const std::vector<uint8_t>& data, enet_uint32 flags) override;
+        void SendToClient(uint32_t peerId, const std::vector<uint8_t>& data, enet_uint32 flags) override;
 
         /**
          * @brief Delivers queued messages.
@@ -86,5 +68,7 @@ namespace Engine
          * @return true if a peer is set, false otherwise.
          */
         bool Connected() override;
+
+        void Clean() override;
     };
 }

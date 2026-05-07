@@ -13,6 +13,8 @@ add_subdirectory(libs/SDL3_mixer)
 add_subdirectory(libs/enet)
 add_subdirectory(libs/pfr)
 
+# --- ImGui ---
+
 set(IMGUI_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui/imgui.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui/imgui_draw.cpp
@@ -31,7 +33,7 @@ target_include_directories(imgui PUBLIC
 
 target_link_libraries(imgui PRIVATE SDL3::SDL3)
 
-# --- Engine Files ---
+# --- Engine ---
 
 file(GLOB_RECURSE ENGINE_SOURCE_FILES "src/*.cpp")
 file(GLOB_RECURSE ENGINE_HEADER_FILES "include/igneous/*.hpp")
@@ -56,23 +58,65 @@ target_link_libraries(igneous PUBLIC
         boost_pfr
 )
 
-function(igneous_copy_runtime_dependencies TARGET_NAME)
+# --- Steamworks (optional) ---
+# Must come after add_library(igneous) so the target exists before we modify it.
+# IGNEOUS_STEAM_DLL is cached as INTERNAL so IgneousHelpers.cmake can read it in the game's scope.
+
+option(IGNEOUS_STEAM "Enable Steamworks integration" OFF)
+
+if (IGNEOUS_STEAM)
+    set(STEAMWORKS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/steamworks)
+
     if (WIN32)
-        get_filename_component(MINGW_BIN_DIR ${CMAKE_CXX_COMPILER} DIRECTORY)
+        set(STEAM_LIB "${STEAMWORKS_DIR}/redistributable_bin/win64/steam_api64.dll")
+    elseif (UNIX AND NOT APPLE)
+        set(STEAM_LIB "${STEAMWORKS_DIR}/redistributable_bin/linux64/libsteam_api.so")
+    elseif (APPLE)
+        set(STEAM_LIB "${STEAMWORKS_DIR}/redistributable_bin/osx/libsteam_api.dylib")
+    endif()
 
-        add_custom_command(
-                TARGET ${TARGET_NAME} POST_BUILD
-                COMMAND "${CMAKE_COMMAND}" -E copy_if_different "$<TARGET_FILE:SDL3::SDL3>" "$<TARGET_FILE_DIR:${TARGET_NAME}>"
-                COMMAND "${CMAKE_COMMAND}" -E copy_if_different "$<TARGET_FILE:SDL3_image::SDL3_image>" "$<TARGET_FILE_DIR:${TARGET_NAME}>"
-                COMMAND "${CMAKE_COMMAND}" -E copy_if_different "$<TARGET_FILE:SDL3_mixer::SDL3_mixer>" "$<TARGET_FILE_DIR:${TARGET_NAME}>"
-                COMMAND "${CMAKE_COMMAND}" -E copy_if_different "$<TARGET_FILE:enet>" "$<TARGET_FILE_DIR:${TARGET_NAME}>"
-                COMMAND "${CMAKE_COMMAND}" -E copy_if_different "$<TARGET_FILE:SQLiteCpp>" "$<TARGET_FILE_DIR:${TARGET_NAME}>"
-                COMMAND "${CMAKE_COMMAND}" -E copy_if_different "$<TARGET_FILE:SQLite::SQLite3>" "$<TARGET_FILE_DIR:${TARGET_NAME}>"
-
-                COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${MINGW_BIN_DIR}/libwinpthread-1.dll" "$<TARGET_FILE_DIR:${TARGET_NAME}>"
-                COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${MINGW_BIN_DIR}/libgcc_s_seh-1.dll" "$<TARGET_FILE_DIR:${TARGET_NAME}>"
-                COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${MINGW_BIN_DIR}/libstdc++-6.dll" "$<TARGET_FILE_DIR:${TARGET_NAME}>"
-                VERBATIM
+    if (NOT EXISTS "${STEAM_LIB}")
+        message(FATAL_ERROR
+                "IGNEOUS_STEAM is ON but Steamworks SDK binaries not found at ${STEAM_LIB}. "
+                "See libs/steamworks/README.md for setup instructions."
         )
     endif()
-endfunction()
+
+    # Cache the resolved DLL/so path so IgneousHelpers.cmake can copy it directly
+    # without relying on the steamworks target being visible in the game's scope
+    set(IGNEOUS_STEAM_DLL "${STEAM_LIB}" CACHE INTERNAL "Path to the Steamworks shared library")
+
+    add_library(steamworks SHARED IMPORTED GLOBAL)
+    target_include_directories(steamworks INTERFACE ${STEAMWORKS_DIR}/public)
+
+    if (WIN32)
+        set_target_properties(steamworks PROPERTIES
+                IMPORTED_LOCATION "${STEAMWORKS_DIR}/redistributable_bin/win64/steam_api64.dll"
+                IMPORTED_IMPLIB   "${STEAMWORKS_DIR}/redistributable_bin/win64/steam_api64.lib"
+        )
+    elseif (UNIX AND NOT APPLE)
+        set_target_properties(steamworks PROPERTIES
+                IMPORTED_LOCATION "${STEAMWORKS_DIR}/redistributable_bin/linux64/libsteam_api.so"
+        )
+    elseif (APPLE)
+        set_target_properties(steamworks PROPERTIES
+                IMPORTED_LOCATION "${STEAMWORKS_DIR}/redistributable_bin/osx/libsteam_api.dylib"
+        )
+    endif()
+
+    target_link_libraries(igneous PUBLIC steamworks)
+    target_compile_definitions(igneous PUBLIC IGNEOUS_STEAM_ENABLED)
+
+    message(STATUS "Igneous: Steamworks integration ENABLED")
+else()
+    message(STATUS "Igneous: Steamworks integration DISABLED")
+endif()
+
+# --- Helpers ---
+# Exposes igneous_copy_runtime_dependencies() to any project that add_subdirectory's this engine
+
+include(cmake/IgneousHelpers.cmake)
+
+install(FILES cmake/IgneousHelpers.cmake
+        DESTINATION lib/cmake/igneous
+)

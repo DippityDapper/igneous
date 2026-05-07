@@ -263,9 +263,9 @@ namespace Engine
          */
         Vec3<int> Ceil() const
         {
-            int dx = (int) std::ceil(x);
-            int dy = (int) std::ceil(y);
-            int dz = (int) std::ceil(z);
+            int dx = static_cast<int>(std::ceil(x));
+            int dy = static_cast<int>(std::ceil(y));
+            int dz = static_cast<int>(std::ceil(z));
             return {dx, dy, dz};
         }
 
@@ -276,9 +276,9 @@ namespace Engine
          */
         Vec3<int> Floor() const
         {
-            int dx = (int) std::floor(x);
-            int dy = (int) std::floor(y);
-            int dz = (int) std::floor(z);
+            int dx = static_cast<int>(std::floor(x));
+            int dy = static_cast<int>(std::floor(y));
+            int dz = static_cast<int>(std::floor(z));
             return {dx, dy, dz};
         }
 

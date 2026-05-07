@@ -96,14 +96,12 @@ namespace Engine
             Input::HandleEvent(sdlEvent);
         }
 
-        for (auto& layer: Input::GetInputLayers() | std::views::values)
+        for (const auto& layer: Input::GetInputLayers())
         {
-            if (SceneManager::GetSceneRoot())
-                SceneManager::GetSceneRoot()->UI(layer);
             if (Camera::main)
-                Camera::main->HandleEventsInternal(layer);
+                Camera::main->HandleEventsInternal(*layer);
             if (SceneManager::GetSceneRoot())
-                SceneManager::GetSceneRoot()->HandleEvents(layer);
+                SceneManager::GetSceneRoot()->HandleEvents(*layer);
         }
     }
 
@@ -115,7 +113,7 @@ namespace Engine
 
             Time::lastTick = Time::currentTick;
             Time::currentTick = SDL_GetTicks();
-            Time::deltaTime = (double)(Time::currentTick - Time::lastTick) / 1000;
+            Time::deltaTime = (double) (Time::currentTick - Time::lastTick) / 1000;
 
             HandleEvents();
 

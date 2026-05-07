@@ -4,12 +4,12 @@ namespace Engine
 {
     Scene::~Scene()
     {
-        CleanInternal();
+        OnDestroyInternal();
     }
 
-    void Scene::InitInternal()
+    void Scene::OnCreatedInternal()
     {
-        Init();
+        OnCreated();
     }
 
     void Scene::UpdateInternal(double delta)
@@ -17,19 +17,14 @@ namespace Engine
         Update(delta);
     }
 
-    void Scene::UIInternal(InputLayer& layer)
-    {
-        UI(layer);
-    }
-
     void Scene::RenderInternal()
     {
         Render();
     }
 
-    void Scene::HandleEventsInternal(InputLayer& layer)
+    void Scene::HandleInputsInternal(InputLayer& layer)
     {
-        HandleEvents(layer);
+        HandleInputs(layer);
     }
 
     void Scene::SetActive(bool value)
@@ -46,8 +41,8 @@ namespace Engine
         return active;
     }
 
-    void Scene::CleanInternal()
+    void Scene::OnDestroyInternal()
     {
-        Clean();
+        OnDestroy();
     }
 }

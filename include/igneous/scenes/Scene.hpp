@@ -161,7 +161,7 @@ namespace Engine
          *
          * @note Called automatically by SceneRoot::AddScene().
          */
-        void InitInternal();
+        void OnCreatedInternal();
 
         /**
          * @brief Internal update wrapper.
@@ -174,18 +174,6 @@ namespace Engine
          * @note Called once per frame by SceneRoot::Update() if the scene is active.
          */
         void UpdateInternal(double delta);
-
-        /**
-         * @brief Internal UI processing wrapper.
-         *
-         * Calls the virtual UI() method. Do not override this method;
-         * override UI() instead.
-         *
-         * @param layer The input layer for UI event processing.
-         *
-         * @note Called once per frame by SceneRoot::UI() if the scene is active.
-         */
-        void UIInternal(InputLayer& layer);
 
         /**
          * @brief Internal rendering wrapper.
@@ -205,7 +193,7 @@ namespace Engine
          *
          * @note Called automatically when the scene is removed or destroyed.
          */
-        void CleanInternal();
+        void OnDestroyInternal();
 
         /**
          * @brief Internal event handling wrapper.
@@ -217,7 +205,7 @@ namespace Engine
          *
          * @note Called once per frame by SceneRoot::HandleEvents() if the scene is active.
          */
-        void HandleEventsInternal(InputLayer& layer);
+        void HandleInputsInternal(InputLayer& layer);
 
         /**
          * @brief Sets the active state of the scene.
@@ -250,7 +238,7 @@ namespace Engine
          * @note Called once when the scene is added to the SceneRoot.
          * @note Called before the scene is set to active.
          */
-        virtual void Init()
+        virtual void OnCreated()
         {
         }
 
@@ -265,21 +253,6 @@ namespace Engine
          * @note Do not perform rendering in this method; use Render() instead.
          */
         virtual void Update(double delta)
-        {
-        }
-
-        /**
-         * @brief Called every frame to process UI.
-         *
-         * Override this method to handle ImGui or other UI systems. This is called
-         * before HandleEvents() in the frame, allowing UI to consume input events first.
-         *
-         * @param layer The input layer for UI event processing.
-         *
-         * @note Only called when the scene is active.
-         * @note This is where you should place ImGui calls.
-         */
-        virtual void UI(InputLayer& layer)
         {
         }
 
@@ -306,11 +279,11 @@ namespace Engine
          * @param layer The input layer containing input state and events.
          *
          * @note Only called when the scene is active.
-         * @note Called after UI() but before Update() each frame.
+         * @note Called before Update() each frame.
          *
          * @see InputLayer
          */
-        virtual void HandleEvents(InputLayer& layer)
+        virtual void HandleInputs(InputLayer& layer)
         {
         }
 
@@ -325,7 +298,7 @@ namespace Engine
          * @note Called automatically when the scene is removed from the SceneRoot.
          * @note Also called by the destructor as a safety measure.
          */
-        virtual void Clean()
+        virtual void OnDestroy()
         {
         }
 
