@@ -1,8 +1,12 @@
 #include "igneous/networking/SteamNetwork.hpp"
 
+#include "upnpcommands.h"
+
 #include <SDL3/SDL_log.h>
 
 #include "igneous/networking/NetworkEvents.hpp"
+
+#include <ranges>
 
 namespace Engine
 {
@@ -28,6 +32,60 @@ namespace Engine
     SteamNetwork::SteamNetwork(int port, bool localOnly)
     {
         _isServer = true;
+        _port = port;
+
+        if (!localOnly)
+        {
+            int error = 0;
+            _upnpDevList = upnpDiscover(2000, nullptr, nullptr, UPNP_LOCAL_PORT_ANY, 0, 2, &error);
+
+            if (_upnpDevList)
+            {
+                char lanAddr[64] = {};
+                char wanAddr[64] = {};
+                int igdStatus = UPNP_GetValidIGD(_upnpDevList, &_upnpUrls, &_upnpData, lanAddr, sizeof(lanAddr), wanAddr, sizeof(wanAddr));
+
+                if (igdStatus == 1)
+                {
+                    const std::string portStr = std::to_string(port);
+                    int mapResult = UPNP_AddPortMapping(
+                            _upnpUrls.controlURL,
+                            _upnpData.first.servicetype,
+                            portStr.c_str(), // external port
+                            portStr.c_str(), // internal port
+                            lanAddr,         // internal client (our LAN IP)
+                            "Interspace",    // description
+                            "UDP",           // protocol — change to TCP if needed
+                            nullptr,         // remote host (nullptr = any)
+                            "0"              // lease duration (0 = indefinite)
+                    );
+
+                    if (mapResult == UPNPCOMMAND_SUCCESS)
+                    {
+                        _upnpMapped = true;
+
+                        char externalIP[40] = {};
+                        UPNP_GetExternalIPAddress(
+                                _upnpUrls.controlURL,
+                                _upnpData.first.servicetype,
+                                externalIP);
+                        SDL_Log("UPnP: Port %d mapped successfully. External IP: %s", port, externalIP);
+                    }
+                    else
+                    {
+                        SDL_Log("UPnP: Port mapping failed with code %d", mapResult);
+                    }
+                }
+                else
+                {
+                    SDL_Log("UPnP: No valid connected gateway found (IGD status %d).", igdStatus);
+                }
+            }
+            else
+            {
+                SDL_Log("UPnP: Discovery failed (error %d).", error);
+            }
+        }
 
         SteamNetworkingIPAddr addr{};
         addr.Clear();
@@ -187,7 +245,7 @@ namespace Engine
 
         _lastPingSend = now;
 
-        for (auto& [id, conn]: _connections)
+        for (auto& conn: _connections | std::views::values)
             SendMessage(conn, PingPacket, 0);
     }
 
@@ -236,7 +294,7 @@ namespace Engine
             msg.data.assign(data, data + dataLen);
             steamMsg->Release();
 
-            _fromNetwork.Push(std::move(msg));
+            _fromNetwork.Push(msg);
         }
     }
 
@@ -257,7 +315,7 @@ namespace Engine
     // Public interface
     // -------------------------------------------------------------------------
 
-    void SteamNetwork::SendToServer(const std::vector<uint8_t>& data, enet_uint32 flags)
+    void SteamNetwork::SendToServer(const std::vector<uint8_t>& data, uint32_t flags)
     {
         if (loopbackPeer != nullptr)
         {
@@ -276,7 +334,7 @@ namespace Engine
         SendMessage(_serverConnection, data, flags);
     }
 
-    void SteamNetwork::SendToClient(uint32_t peerId, const std::vector<uint8_t>& data, enet_uint32 flags)
+    void SteamNetwork::SendToClient(uint32_t peerId, const std::vector<uint8_t>& data, uint32_t flags)
     {
         if (loopbackPeer != nullptr && peerId == 0)
         {
@@ -347,6 +405,27 @@ namespace Engine
         }
 
         _connections.clear();
+
+        if (_upnpMapped)
+        {
+            const std::string portStr = std::to_string(_port);
+            UPNP_DeletePortMapping(
+                    _upnpUrls.controlURL,
+                    _upnpData.first.servicetype,
+                    portStr.c_str(),
+                    "UDP",
+                    nullptr);
+            _upnpMapped = false;
+            SDL_Log("UPnP: Port mapping removed.");
+        }
+
+        if (_upnpDevList)
+        {
+            freeUPNPDevlist(_upnpDevList);
+            _upnpDevList = nullptr;
+        }
+
+        FreeUPNPUrls(&_upnpUrls);
     }
 
     // =============================================================================

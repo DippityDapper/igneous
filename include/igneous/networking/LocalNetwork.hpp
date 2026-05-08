@@ -41,7 +41,7 @@ namespace Engine
          * @param data Payload to send.
          * @param flags Message flags.
          */
-        void SendToServer(const std::vector<uint8_t>& data, enet_uint32 flags) override;
+        void SendToServer(const std::vector<uint8_t>& data, uint32_t flags) override;
 
         /**
          * @brief Sends data to a client.
@@ -53,7 +53,7 @@ namespace Engine
          * @param data Payload to send.
          * @param flags Message flags.
          */
-        void SendToClient(uint32_t peerId, const std::vector<uint8_t>& data, enet_uint32 flags) override;
+        void SendToClient(uint32_t peerId, const std::vector<uint8_t>& data, uint32_t flags) override;
 
         /**
          * @brief Delivers queued messages.

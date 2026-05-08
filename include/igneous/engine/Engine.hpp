@@ -182,7 +182,7 @@ namespace Engine
     int Engine::Run(const std::string& initialSceneName)
     {
         Init();
-        SceneManager::GetSceneRoot()->AddScene<T>(initialSceneName, true, false);
+        SceneManager::GetSceneRoot()->AddScene<T>(initialSceneName, "", true, false);
         Update();
         Clean();
         return 0;

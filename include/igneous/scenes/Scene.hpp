@@ -120,6 +120,8 @@ namespace Engine
          */
         std::string name{};
 
+        std::string tag{};
+
         /**
          * @brief Whether this scene is a singleton.
          *
@@ -193,7 +195,7 @@ namespace Engine
          *
          * @note Called automatically when the scene is removed or destroyed.
          */
-        void OnDestroyInternal();
+        void OnDestroyedInternal();
 
         /**
          * @brief Internal event handling wrapper.
@@ -298,7 +300,7 @@ namespace Engine
          * @note Called automatically when the scene is removed from the SceneRoot.
          * @note Also called by the destructor as a safety measure.
          */
-        virtual void OnDestroy()
+        virtual void OnDestroyed()
         {
         }
 

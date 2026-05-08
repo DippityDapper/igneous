@@ -1,5 +1,8 @@
 #pragma once
 
+#include "igd_desc_parse.h"
+#include "miniupnpc.h"
+
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -53,10 +56,17 @@ namespace Engine
         std::thread _networkThread;
         ThreadSafeQueue<NetworkMessage> _fromNetwork{};
 
+        int _port = -1;
+
         static const std::vector<uint8_t> PingPacket;
         double _lastPingTime = 0.0;
         double _lastPingSend = 0.0;
         static constexpr double PingTimeout = 5.0;
+
+        UPNPDev* _upnpDevList = nullptr;
+        UPNPUrls _upnpUrls{};
+        IGDdatas _upnpData{};
+        bool _upnpMapped = false;
 
         STEAM_CALLBACK(SteamNetwork, OnConnectionStatusChanged, SteamNetConnectionStatusChangedCallback_t);
 
@@ -97,8 +107,8 @@ namespace Engine
          */
         ~SteamNetwork() override;
 
-        void SendToServer(const std::vector<uint8_t>& data, enet_uint32 flags) override;
-        void SendToClient(uint32_t peerId, const std::vector<uint8_t>& data, enet_uint32 flags) override;
+        void SendToServer(const std::vector<uint8_t>& data, uint32_t flags) override;
+        void SendToClient(uint32_t peerId, const std::vector<uint8_t>& data, uint32_t flags) override;
         void Poll() override;
         bool Connected() override;
         void Clean() override;

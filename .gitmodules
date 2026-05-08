@@ -19,3 +19,6 @@
 [submodule "libs/pfr"]
 	path = libs/pfr
 	url = https://github.com/boostorg/pfr.git
+[submodule "libs/miniupnp"]
+	path = libs/miniupnp
+	url = https://github.com/miniupnp/miniupnp

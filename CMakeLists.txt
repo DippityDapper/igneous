@@ -4,8 +4,15 @@ project(igneous)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(UPNPC_BUILD_STATIC    ON  CACHE BOOL "" FORCE)
+set(UPNPC_BUILD_SHARED    OFF CACHE BOOL "" FORCE)
+set(UPNPC_BUILD_TESTS     OFF CACHE BOOL "" FORCE)
+set(UPNPC_BUILD_SAMPLE    OFF CACHE BOOL "" FORCE)
+set(UPNPC_NO_INSTALL      ON  CACHE BOOL "" FORCE)
+
 # --- Dependencies ---
 
+add_subdirectory(libs/miniupnp/miniupnpc)
 add_subdirectory(libs/SDL3)
 add_subdirectory(libs/SDL3_image)
 add_subdirectory(libs/SQLiteCpp)
@@ -56,6 +63,7 @@ target_link_libraries(igneous PUBLIC
         imgui
         enet
         boost_pfr
+        libminiupnpc-static
 )
 
 # --- Steamworks (optional) ---

@@ -1,5 +1,8 @@
 #pragma once
 
+#include "igd_desc_parse.h"
+#include "miniupnpc.h"
+
 #include <cstdint>
 #include <string>
 #include <thread>
@@ -49,6 +52,11 @@ namespace Engine
         double _lastPingTime = 0.0;
         double _lastPingSend = 0.0;
         static constexpr double PingTimeout = 5.0;
+
+        UPNPDev* _upnpDevList = nullptr;
+        UPNPUrls _upnpUrls{};
+        IGDdatas _upnpData{};
+        bool _upnpMapped = false;
 
       private:
         void NetworkLoop();

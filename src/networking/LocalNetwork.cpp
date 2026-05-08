@@ -27,7 +27,7 @@ namespace Engine
     {
     }
 
-    void LocalNetwork::SendToServer(const std::vector<uint8_t>& data, enet_uint32 flags)
+    void LocalNetwork::SendToServer(const std::vector<uint8_t>& data, uint32_t flags)
     {
         if (isServer)
             return;
@@ -40,7 +40,7 @@ namespace Engine
         loopbackPeer->loopbackMessages.push(msg);
     }
 
-    void LocalNetwork::SendToClient(uint32_t peerId, const std::vector<uint8_t>& data, enet_uint32 flags)
+    void LocalNetwork::SendToClient(uint32_t peerId, const std::vector<uint8_t>& data, uint32_t flags)
     {
         if (!isServer)
             return;

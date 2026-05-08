@@ -7,6 +7,8 @@
 #include "SDL3/SDL_log.h"
 #include "igneous/scenes/Scene.hpp"
 
+#include <queue>
+
 namespace Engine
 {
     /**
@@ -47,6 +49,7 @@ namespace Engine
          * The SceneRoot owns all scene instances through unique_ptr.
          */
         std::unordered_map<std::string, std::unique_ptr<Scene>> scenes{};
+ std::queue<std::string> scenesToRemove{};
 
       public:
         /**
@@ -57,6 +60,8 @@ namespace Engine
          * @note Called automatically by SceneManager::SetSceneRoot().
          */
         void Init();
+
+        void ProcessRemoveScenesQueue();
 
         /**
          * @brief Updates all active scenes.
@@ -145,7 +150,7 @@ namespace Engine
          */
         template<class T>
         requires(std::is_base_of_v<Scene, T>)
-        T* AddScene(const std::string& name, bool active = true, bool singleton = false);
+        T* AddScene(const std::string& name, const std::string& tag = "", bool active = true, bool singleton = false);
 
         /**
          * @brief Removes a scene from the SceneRoot.
@@ -160,6 +165,8 @@ namespace Engine
          * @note Can remove singleton scenes (unlike UnloadScene).
          */
         void RemoveScene(const std::string& name);
+
+        void RemoveScenes(const std::string& tag);
 
         /**
          * @brief Loads (activates) a scene by name.
@@ -248,7 +255,7 @@ namespace Engine
 
     template<class T>
     requires(std::is_base_of_v<Scene, T>)
-    T* SceneRoot::AddScene(const std::string& name, bool active, bool singleton)
+    T* SceneRoot::AddScene(const std::string& name, const std::string& tag, bool active, bool singleton)
     {
         if (scenes.contains(name))
         {
@@ -259,6 +266,7 @@ namespace Engine
         std::unique_ptr<T> scene = std::make_unique<T>();
         scene->root = this;
         scene->name = name;
+        scene->tag = tag;
         scene->singleton = singleton;
 
         scene->OnCreatedInternal();

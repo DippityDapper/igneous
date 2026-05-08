@@ -4,8 +4,6 @@
 #include <functional>
 #include <vector>
 
-#include "enet/enet.h"
-
 #include "igneous/networking/NetworkEvents.hpp"
 
 #include <queue>
@@ -56,7 +54,7 @@ namespace Engine
          * @param data Payload to send.
          * @param flags ENet packet flags.
          */
-        virtual void SendToServer(const std::vector<uint8_t>& data, enet_uint32 flags) = 0;
+        virtual void SendToServer(const std::vector<uint8_t>& data, uint32_t flags) = 0;
 
         /**
          * @brief Sends data to a specific client.
@@ -67,7 +65,7 @@ namespace Engine
          * @param data Payload to send.
          * @param flags ENet packet flags.
          */
-        virtual void SendToClient(uint32_t peerId, const std::vector<uint8_t>& data, enet_uint32 flags) = 0;
+        virtual void SendToClient(uint32_t peerId, const std::vector<uint8_t>& data, uint32_t flags) = 0;
 
         /**
          * @brief Processes pending network events.

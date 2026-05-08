@@ -9,6 +9,18 @@ namespace Engine
     void SceneRoot::Init()
     {
     }
+ void SceneRoot::ProcessRemoveScenesQueue()
+    {
+        if (scenesToRemove.size() > 0)
+        {
+            for (int i = 0; i < scenesToRemove.size(); ++i)
+            {
+                std::string sceneName = scenesToRemove.front();
+                scenesToRemove.pop();
+                RemoveScene(sceneName);
+            }
+        }
+    }
 
     void SceneRoot::Update(double delta)
     {
@@ -42,7 +54,7 @@ namespace Engine
     void SceneRoot::Clean()
     {
         for (const auto& scene: scenes | std::views::values)
-            scene->OnDestroyInternal();
+            scene->OnDestroyedInternal();
         scenes.clear();
     }
 
@@ -54,8 +66,17 @@ namespace Engine
             return;
         }
         Scene* scene = scenes[name].get();
-        scene->OnDestroyInternal();
+        scene->OnDestroyedInternal();
         scenes.erase(name);
+    }
+
+    void SceneRoot::RemoveScenes(const std::string& tag)
+    {
+        for (const auto& scene: scenes | std::views::values)
+        {
+            if (scene->tag == tag)
+                scenesToRemove.emplace(scene.get()->name);
+        }
     }
 
     bool SceneRoot::LoadScene(const std::string& name, bool unloadAll)

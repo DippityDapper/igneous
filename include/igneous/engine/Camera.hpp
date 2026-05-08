@@ -119,7 +119,7 @@ namespace Engine
          *
          * If this camera is the main camera, sets the main camera pointer to null.
          */
-        ~Camera();
+        virtual ~Camera();
 
         /**
          * @brief Deleted copy constructor.

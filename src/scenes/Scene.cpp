@@ -4,7 +4,7 @@ namespace Engine
 {
     Scene::~Scene()
     {
-        OnDestroyInternal();
+        OnDestroyedInternal();
     }
 
     void Scene::OnCreatedInternal()
@@ -41,8 +41,8 @@ namespace Engine
         return active;
     }
 
-    void Scene::OnDestroyInternal()
+    void Scene::OnDestroyedInternal()
     {
-        OnDestroy();
+        OnDestroyed();
     }
 }

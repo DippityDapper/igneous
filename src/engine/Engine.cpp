@@ -128,6 +128,8 @@ namespace Engine
             ResourceManager::RenderSprites(Time::deltaTime);
 
             Renderer::Render();
+ if (SceneManager::GetSceneRoot())
+                SceneManager::GetSceneRoot()->ProcessRemoveScenesQueue();
         }
     }
 

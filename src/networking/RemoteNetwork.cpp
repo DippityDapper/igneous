@@ -1,5 +1,7 @@
 #include "igneous/networking/RemoteNetwork.hpp"
 
+#include "upnpcommands.h"
+
 #include <chrono>
 #include <SDL3/SDL_log.h>
 
@@ -9,9 +11,6 @@ namespace Engine
 {
     const std::vector<uint8_t> RemoteNetwork::PingPacket = {static_cast<uint8_t>(NetworkEventType::Ping)};
 
-    // Returns seconds since Unix epoch using std::chrono.
-    // UPnP (Godot-specific) is not implemented — add your own port mapping
-    // solution here if needed (e.g. libnatpmp or miniupnpc).
     double RemoteNetwork::GetTime() const
     {
         using namespace std::chrono;
@@ -22,6 +21,59 @@ namespace Engine
     {
         _isServer = true;
         _port = port;
+
+        if (!localOnly)
+        {
+            int error = 0;
+            _upnpDevList = upnpDiscover(2000, nullptr, nullptr, UPNP_LOCAL_PORT_ANY, 0, 2, &error);
+
+            if (_upnpDevList)
+            {
+                char lanAddr[64] = {};
+                char wanAddr[64] = {};
+                int igdStatus = UPNP_GetValidIGD(_upnpDevList, &_upnpUrls, &_upnpData, lanAddr, sizeof(lanAddr), wanAddr, sizeof(wanAddr));
+
+                if (igdStatus == 1)
+                {
+                    const std::string portStr = std::to_string(port);
+                    int mapResult = UPNP_AddPortMapping(
+                            _upnpUrls.controlURL,
+                            _upnpData.first.servicetype,
+                            portStr.c_str(), // external port
+                            portStr.c_str(), // internal port
+                            lanAddr,         // internal client (our LAN IP)
+                            "Interspace",    // description
+                            "UDP",           // protocol — change to TCP if needed
+                            nullptr,         // remote host (nullptr = any)
+                            "0"              // lease duration (0 = indefinite)
+                    );
+
+                    if (mapResult == UPNPCOMMAND_SUCCESS)
+                    {
+                        _upnpMapped = true;
+
+                        char externalIP[40] = {};
+                        UPNP_GetExternalIPAddress(
+                                _upnpUrls.controlURL,
+                                _upnpData.first.servicetype,
+                                externalIP);
+                        SDL_Log("UPnP: Port %d mapped successfully. External IP: %s", port, externalIP);
+                    }
+                    else
+                    {
+                        SDL_Log("UPnP: Port mapping failed with code %d", mapResult);
+                    }
+                }
+                else
+                {
+                    SDL_Log("UPnP: No valid connected gateway found (IGD status %d).", igdStatus);
+                }
+            }
+            else
+            {
+                SDL_Log("UPnP: Discovery failed (error %d).", error);
+            }
+        }
 
         ENetAddress address{};
         address.port = static_cast<enet_uint16>(port);
@@ -347,6 +399,25 @@ namespace Engine
         _peerIdLookup.clear();
         _nextPeerId = 1;
 
-        // UPnP port cleanup would go here if using miniupnpc or libnatpmp.
+        if (_upnpMapped)
+        {
+            const std::string portStr = std::to_string(_port);
+            UPNP_DeletePortMapping(
+                    _upnpUrls.controlURL,
+                    _upnpData.first.servicetype,
+                    portStr.c_str(),
+                    "UDP",
+                    nullptr);
+            _upnpMapped = false;
+            SDL_Log("UPnP: Port mapping removed.");
+        }
+
+        if (_upnpDevList)
+        {
+            freeUPNPDevlist(_upnpDevList);
+            _upnpDevList = nullptr;
+        }
+
+        FreeUPNPUrls(&_upnpUrls);
     }
 }
