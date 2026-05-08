@@ -42,7 +42,7 @@ namespace Engine
 
     bool Engine::InitSDL() const
     {
-        if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO))
+        if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD))
         {
             SDL_Log("SDL init failed: %s", SDL_GetError());
             return false;
@@ -128,7 +128,7 @@ namespace Engine
             ResourceManager::RenderSprites(Time::deltaTime);
 
             Renderer::Render();
- if (SceneManager::GetSceneRoot())
+            if (SceneManager::GetSceneRoot())
                 SceneManager::GetSceneRoot()->ProcessRemoveScenesQueue();
         }
     }

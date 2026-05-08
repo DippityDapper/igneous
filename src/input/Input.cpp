@@ -9,7 +9,29 @@ namespace Engine
 {
     bool Input::Init()
     {
+        InitGamepads();
         AddInputLayer("_default", 0);
+        return true;
+    }
+
+    bool Input::InitGamepads()
+    {
+        int count = 0;
+        SDL_JoystickID* joystickIds = SDL_GetGamepads(&count);
+        if (joystickIds)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                SDL_JoystickID id = joystickIds[i];
+                SDL_Gamepad* gamepad = SDL_OpenGamepad(id);
+                if (gamepad)
+                {
+                    gamepads[id] = gamepad;
+                    SDL_Log("Gamepad connected: %s (id %d)", SDL_GetGamepadName(gamepad), id);
+                }
+            }
+            SDL_free(joystickIds);
+        }
         return true;
     }
 
@@ -30,6 +52,14 @@ namespace Engine
         {
             mouseEvent.pressedLastFrame = mouseEvent.pressed;
             mouseEvent.handled = false;
+        }
+        for (auto& buttonMap: gamepadButtonEvents | std::views::values)
+        {
+            for (auto& event: buttonMap | std::views::values)
+            {
+                event.pressedLastFrame = event.pressed;
+                event.handled = false;
+            }
         }
     }
 
@@ -74,6 +104,46 @@ namespace Engine
         if (event.type == SDL_EVENT_WINDOW_RESIZED)
         {
             wasWindowResized = true;
+        }
+        if (event.type == SDL_EVENT_GAMEPAD_ADDED)
+        {
+            SDL_JoystickID id = event.gdevice.which;
+            if (!gamepads.contains(id))
+            {
+                SDL_Gamepad* gamepad = SDL_OpenGamepad(id);
+                if (gamepad)
+                {
+                    gamepads[id] = gamepad;
+                    SDL_Log("Gamepad connected: %s (id %d)", SDL_GetGamepadName(gamepad), id);
+                }
+            }
+        }
+        if (event.type == SDL_EVENT_GAMEPAD_REMOVED)
+        {
+            SDL_JoystickID id = event.gdevice.which;
+            if (gamepads.contains(id))
+            {
+                SDL_CloseGamepad(gamepads[id]);
+                gamepads.erase(id);
+                gamepadButtonEvents.erase(id);
+                gamepadAxisValues.erase(id);
+                SDL_Log("Gamepad disconnected (id %d)", id);
+            }
+        }
+        if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || event.type == SDL_EVENT_GAMEPAD_BUTTON_UP)
+        {
+            SDL_JoystickID id = event.gbutton.which;
+            SDL_GamepadButton button = static_cast<SDL_GamepadButton>(event.gbutton.button);
+            InputEvent& btnEvent = gamepadButtonEvents[id][button];
+            btnEvent.pressed = event.gbutton.down;
+        }
+        if (event.type == SDL_EVENT_GAMEPAD_AXIS_MOTION)
+        {
+            SDL_JoystickID id = event.gaxis.which;
+            SDL_GamepadAxis axis = static_cast<SDL_GamepadAxis>(event.gaxis.axis);
+            // SDL axis range is -32768 to 32767; normalize to -1.0..1.0
+            // Triggers report 0 to 32767, so they map to 0.0..1.0 correctly
+            gamepadAxisValues[id][axis] = event.gaxis.value / 32767.0f;
         }
     }
 
@@ -220,5 +290,89 @@ namespace Engine
     Vec2<float> Input::GetMouseWheelVelocity()
     {
         return {mouseWheelVelX, mouseWheelVelY};
+    }
+
+    void Input::HandleGamepadButton(SDL_JoystickID instanceId, SDL_GamepadButton button)
+    {
+        if (!gamepadButtonEvents.contains(instanceId))
+            return;
+        if (!gamepadButtonEvents[instanceId].contains(button))
+            return;
+        gamepadButtonEvents[instanceId][button].handled = true;
+    }
+
+    bool Input::IsGamepadButtonHandled(SDL_JoystickID instanceId, SDL_GamepadButton button)
+    {
+        if (!gamepadButtonEvents.contains(instanceId))
+            return false;
+        if (!gamepadButtonEvents[instanceId].contains(button))
+            return false;
+        return gamepadButtonEvents[instanceId][button].handled;
+    }
+
+    bool Input::IsGamepadButtonDown(SDL_JoystickID instanceId, SDL_GamepadButton button, bool skipIfHandled)
+    {
+        if (!gamepadButtonEvents.contains(instanceId))
+            return false;
+        auto& btnMap = gamepadButtonEvents[instanceId];
+        if (!btnMap.contains(button))
+            return false;
+        if (skipIfHandled && btnMap[button].handled)
+            return false;
+        if (!btnMap[button].pressed)
+            return false;
+        HandleGamepadButton(instanceId, button);
+        return true;
+    }
+
+    bool Input::IsGamepadButtonJustPressed(SDL_JoystickID instanceId, SDL_GamepadButton button, bool skipIfHandled)
+    {
+        if (!gamepadButtonEvents.contains(instanceId))
+            return false;
+        auto& btnMap = gamepadButtonEvents[instanceId];
+        if (!btnMap.contains(button))
+            return false;
+        if (skipIfHandled && btnMap[button].handled)
+            return false;
+        if (!btnMap[button].pressed || btnMap[button].pressedLastFrame)
+            return false;
+        HandleGamepadButton(instanceId, button);
+        return true;
+    }
+
+    bool Input::IsGamepadButtonJustReleased(SDL_JoystickID instanceId, SDL_GamepadButton button)
+    {
+        if (!gamepadButtonEvents.contains(instanceId))
+            return false;
+        auto& btnMap = gamepadButtonEvents[instanceId];
+        if (!btnMap.contains(button))
+            return false;
+        if (btnMap[button].pressed || !btnMap[button].pressedLastFrame)
+            return false;
+        return true;
+    }
+
+    float Input::GetGamepadAxis(SDL_JoystickID instanceId, SDL_GamepadAxis axis)
+    {
+        if (!gamepadAxisValues.contains(instanceId))
+            return 0.0f;
+        auto& axisMap = gamepadAxisValues[instanceId];
+        if (!axisMap.contains(axis))
+            return 0.0f;
+        return axisMap[axis];
+    }
+
+    std::vector<SDL_JoystickID> Input::GetConnectedGamepads()
+    {
+        std::vector<SDL_JoystickID> ids;
+        ids.reserve(gamepads.size());
+        for (auto id: gamepads | std::views::keys)
+            ids.push_back(id);
+        return ids;
+    }
+
+    Vec2<float> Input::GetGamepadStick(SDL_JoystickID instanceId, SDL_GamepadAxis xAxis, SDL_GamepadAxis yAxis)
+    {
+        return {GetGamepadAxis(instanceId, xAxis), GetGamepadAxis(instanceId, yAxis)};
     }
 }

@@ -78,6 +78,15 @@ namespace Engine
          */
         static inline std::unordered_map<SDL_MouseButtonFlags, InputEvent> mouseEvents{};
 
+        /// Map of connected gamepads, keyed by SDL instance ID.
+        static inline std::unordered_map<SDL_JoystickID, SDL_Gamepad*> gamepads{};
+
+        /// Button state per gamepad: [instanceId][button] -> InputEvent
+        static inline std::unordered_map<SDL_JoystickID, std::unordered_map<SDL_GamepadButton, InputEvent>> gamepadButtonEvents{};
+
+        /// Axis state per gamepad: [instanceId][axis] -> normalized float (-1.0 to 1.0)
+        static inline std::unordered_map<SDL_JoystickID, std::unordered_map<SDL_GamepadAxis, float>> gamepadAxisValues{};
+
         /**
          * @brief Current mouse X position in screen space (pixels).
          */
@@ -136,6 +145,16 @@ namespace Engine
          * @note Called automatically by the Engine during initialization.
          */
         static bool Init();
+
+        /**
+         * @brief Opens all currently connected gamepads.
+         *
+         * Called once by the Engine during initialization. Any gamepads connected
+         * after startup are handled via SDL_EVENT_GAMEPAD_ADDED in HandleEvent().
+         *
+         * @return true if initialization succeeded (even if no gamepads are present).
+         */
+        static bool InitGamepads();
 
         /**
          * @brief Resets per-frame input state.
@@ -423,5 +442,90 @@ namespace Engine
          * @note Reset to (0, 0) at the start of each frame.
          */
         static Vec2<float> GetMouseWheelVelocity();
+
+        /**
+         * @brief Checks if a gamepad button is currently held down.
+         *
+         * @param instanceId The SDL joystick instance ID of the gamepad.
+         * @param button     The SDL gamepad button to check.
+         * @param skipIfHandled If true, returns false if the button is already handled.
+         * @return true if the button is down and passes all checks.
+         *
+         * @note Automatically marks the button as handled when returning true.
+         */
+        static bool IsGamepadButtonDown(SDL_JoystickID instanceId, SDL_GamepadButton button, bool skipIfHandled = true);
+
+        /**
+         * @brief Checks if a gamepad button was just pressed this frame.
+         *
+         * @param instanceId The SDL joystick instance ID of the gamepad.
+         * @param button     The SDL gamepad button to check.
+         * @param skipIfHandled If true, returns false if the button is already handled.
+         * @return true if the button was just pressed this frame.
+         *
+         * @note Automatically marks the button as handled when returning true.
+         */
+        static bool IsGamepadButtonJustPressed(SDL_JoystickID instanceId, SDL_GamepadButton button, bool skipIfHandled = true);
+
+        /**
+         * @brief Checks if a gamepad button was just released this frame.
+         *
+         * @param instanceId The SDL joystick instance ID of the gamepad.
+         * @param button     The SDL gamepad button to check.
+         * @return true if the button was just released this frame.
+         */
+        static bool IsGamepadButtonJustReleased(SDL_JoystickID instanceId, SDL_GamepadButton button);
+
+        /**
+         * @brief Gets a gamepad axis value for this frame.
+         *
+         * Axis values are normalized to the range [-1.0, 1.0].
+         * Dead zone filtering is not applied — handle that in your game logic.
+         *
+         * Common axes:
+         * - SDL_GAMEPAD_AXIS_LEFTX / LEFTY  : Left stick
+         * - SDL_GAMEPAD_AXIS_RIGHTX / RIGHTY: Right stick
+         * - SDL_GAMEPAD_AXIS_LEFT_TRIGGER / RIGHT_TRIGGER: Triggers (0.0 to 1.0)
+         *
+         * @param instanceId The SDL joystick instance ID of the gamepad.
+         * @param axis       The SDL gamepad axis to query.
+         * @return Normalized axis value, or 0.0f if the gamepad/axis is unknown.
+         */
+        static float GetGamepadAxis(SDL_JoystickID instanceId, SDL_GamepadAxis axis);
+
+        /**
+         * @brief Returns the instance IDs of all currently connected gamepads.
+         *
+         * @return Vector of SDL_JoystickID for each connected gamepad.
+         */
+        static std::vector<SDL_JoystickID> GetConnectedGamepads();
+
+        /**
+         * @brief Marks a gamepad button as handled (consumed).
+         *
+         * @param instanceId The SDL joystick instance ID of the gamepad.
+         * @param button     The SDL gamepad button to mark as handled.
+         */
+        static void HandleGamepadButton(SDL_JoystickID instanceId, SDL_GamepadButton button);
+
+        /**
+         * @brief Checks if a gamepad button has been handled this frame.
+         *
+         * @param instanceId The SDL joystick instance ID of the gamepad.
+         * @param button     The SDL gamepad button to check.
+         * @return true if the button has been handled, false otherwise.
+         */
+        static bool IsGamepadButtonHandled(SDL_JoystickID instanceId, SDL_GamepadButton button);
+
+        /**
+         * @brief Gets a gamepad stick as a Vec2.
+         *
+         * @param instanceId The SDL joystick instance ID of the gamepad.
+         * @param xAxis      The axis to use for the X component (left/right).
+         * @param yAxis      The axis to use for the Y component (up/down).
+         * @return Normalized Vec2 with each component in [-1.0, 1.0].
+         *         Returns {0, 0} if the gamepad is unknown.
+         */
+        static Vec2<float> GetGamepadStick(SDL_JoystickID instanceId, SDL_GamepadAxis xAxis, SDL_GamepadAxis yAxis);
     };
 }
