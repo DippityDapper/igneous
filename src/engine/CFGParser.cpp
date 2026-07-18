@@ -8,6 +8,11 @@
 
 namespace Engine
 {
+    void CFGParser::ResetForTests()
+    {
+        configs.clear();
+    }
+
     void CFGParser::LoadConfig(const std::string& filePath, const std::string& configName)
     {
         std::ifstream configFile(filePath);

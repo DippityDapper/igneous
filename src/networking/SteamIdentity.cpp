@@ -1,15 +1,13 @@
 #include "igneous/networking/SteamIdentity.hpp"
 
+#ifdef IGNEOUS_STEAM_ENABLED
 #include "steam/isteamgameserver.h"
+#endif
 
 #include <SDL3/SDL_log.h>
 
 namespace Engine
 {
-
-    // =============================================================================
-    // Steam-enabled implementation
-    // =============================================================================
 
 #ifdef IGNEOUS_STEAM_ENABLED
 
@@ -40,7 +38,6 @@ namespace Engine
 
     std::vector<uint8_t> SteamIdentity::GetAuthToken(uint64_t remoteId)
     {
-        // Bind the ticket to the specific server's SteamID to prevent replay attacks
         SteamNetworkingIdentity remoteIdentity{};
         uint64 id = remoteId;
         remoteIdentity.SetSteamID(CSteamID(id));
@@ -77,7 +74,6 @@ namespace Engine
             return false;
         }
 
-        // Validation is async — OnTicketValidated fires the OnAuthResult callback
         return true;
     }
 
@@ -104,17 +100,7 @@ namespace Engine
         }
     }
 
-    // =============================================================================
-    // Stub implementation — Steamworks not available
-    // =============================================================================
-
 #else
-
-    SteamIdentity::SteamIdentity()
-    {
-        SDL_Log("SteamIdentity: Steamworks support was not compiled into this build of Igneous. "
-                "Enable it with -DIGNEOUS_STEAM=ON and provide the Steamworks SDK.");
-    }
 
     SteamIdentity::~SteamIdentity() = default;
 

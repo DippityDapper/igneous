@@ -6,49 +6,58 @@
 
 namespace Engine
 {
-    void SceneRoot::Init()
+    void SceneRoot::ProcessRemoveScenesQueue()
     {
-    }
- void SceneRoot::ProcessRemoveScenesQueue()
-    {
-        if (scenesToRemove.size() > 0)
+        if (!scenesToRemove.empty())
         {
             for (int i = 0; i < scenesToRemove.size(); ++i)
             {
                 std::string sceneName = scenesToRemove.front();
                 scenesToRemove.pop();
-                RemoveScene(sceneName);
+                if (!scenes.contains(sceneName))
+                    continue;
+
+                Scene* scene = scenes[sceneName].get();
+                scene->OnDestroyedInternal();
+                scenes.erase(sceneName);
             }
         }
     }
 
     void SceneRoot::Update(double delta)
     {
+        std::vector<Scene*> active;
+        active.reserve(scenes.size());
         for (const auto& scene: scenes | std::views::values)
-        {
             if (scene->IsActive())
-                scene->UpdateInternal(delta);
-        }
+                active.push_back(scene.get());
+
+        for (Scene* scene: active)
+            scene->UpdateInternal(delta);
     }
 
     void SceneRoot::Render()
     {
+        std::vector<Scene*> active;
+        active.reserve(scenes.size());
         for (const auto& scene: scenes | std::views::values)
-        {
             if (scene->IsActive())
-                scene->RenderInternal();
-        }
+                active.push_back(scene.get());
+
+        for (Scene* scene: active)
+            scene->RenderInternal();
     }
 
     void SceneRoot::HandleEvents(InputLayer& layer)
     {
+        std::vector<Scene*> active;
+        active.reserve(scenes.size());
         for (const auto& scene: scenes | std::views::values)
-        {
             if (scene->IsActive())
-            {
-                scene->HandleInputsInternal(layer);
-            }
-        }
+                active.push_back(scene.get());
+
+        for (Scene* scene: active)
+            scene->HandleInputsInternal(layer);
     }
 
     void SceneRoot::Clean()
@@ -65,9 +74,7 @@ namespace Engine
             SDL_Log("Scene %s does not exist", name.c_str());
             return;
         }
-        Scene* scene = scenes[name].get();
-        scene->OnDestroyedInternal();
-        scenes.erase(name);
+        scenesToRemove.emplace(name);
     }
 
     void SceneRoot::RemoveScenes(const std::string& tag)

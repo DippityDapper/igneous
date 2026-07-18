@@ -1,8 +1,29 @@
 cmake_minimum_required(VERSION 3.30)
-project(igneous)
+project(igneous VERSION 0.1.0 LANGUAGES CXX)
+
+if (POLICY CMP0219)
+    cmake_policy(SET CMP0219 NEW)
+endif()
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+include(GNUInstallDirs)
+
+# When embedded in a game project, skip examples/tests unless explicitly enabled.
+if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    set(_IGNEOUS_TOP_LEVEL ON)
+else()
+    set(_IGNEOUS_TOP_LEVEL OFF)
+endif()
+
+if (_IGNEOUS_TOP_LEVEL)
+    option(IGNEOUS_BUILD_EXAMPLES "Build engine feature examples" ON)
+    option(IGNEOUS_BUILD_TESTS "Build engine unit tests" ON)
+else()
+    option(IGNEOUS_BUILD_EXAMPLES "Build engine feature examples" OFF)
+    option(IGNEOUS_BUILD_TESTS "Build engine unit tests" OFF)
+endif()
 
 set(UPNPC_BUILD_STATIC    ON  CACHE BOOL "" FORCE)
 set(UPNPC_BUILD_SHARED    OFF CACHE BOOL "" FORCE)
@@ -18,7 +39,10 @@ add_subdirectory(libs/SDL3_image)
 add_subdirectory(libs/SQLiteCpp)
 add_subdirectory(libs/SDL3_mixer)
 add_subdirectory(libs/enet)
+set(_igneous_saved_build_testing ${BUILD_TESTING})
+set(BUILD_TESTING OFF)
 add_subdirectory(libs/pfr)
+set(BUILD_TESTING ${_igneous_saved_build_testing})
 
 # --- ImGui ---
 
@@ -120,11 +144,73 @@ else()
     message(STATUS "Igneous: Steamworks integration DISABLED")
 endif()
 
+add_library(igneous::igneous ALIAS igneous)
+
 # --- Helpers ---
 # Exposes igneous_copy_runtime_dependencies() to any project that add_subdirectory's this engine
 
 include(cmake/IgneousHelpers.cmake)
 
-install(FILES cmake/IgneousHelpers.cmake
-        DESTINATION lib/cmake/igneous
+# --- Install (optional SDK prefix) ---
+# Ships the static library, headers, and runtime helper module.
+# Games should still prefer add_subdirectory / igneous_fetch_content (see docs/linking.md)
+# so all vendored dependencies (SDL3, etc.) are built together.
+
+install(
+        TARGETS igneous
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
+
+install(
+        DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/igneous
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(
+        FILES
+        cmake/Igneous.cmake
+        cmake/IgneousHelpers.cmake
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/igneous
+)
+
+# --- Examples ---
+
+include(cmake/IgneousExamples.cmake)
+
+if (IGNEOUS_BUILD_TESTS)
+    enable_testing()
+endif()
+
+if (IGNEOUS_BUILD_EXAMPLES)
+    set(IGNEOUS_EXAMPLES
+            hello
+            static_sprite
+            animation
+            audio
+            camera
+            input_keyboard
+            input_mouse
+            input_gamepad
+            input_layers
+            input_actions
+            scenes
+            z_index
+            cfg
+            database
+            events
+            perlin
+            networking_local
+            networking_enet
+            networking_steam
+            identity
+            thread_pool
+            renderer
+    )
+
+    foreach(EXAMPLE IN LISTS IGNEOUS_EXAMPLES)
+        igneous_add_example(${EXAMPLE})
+    endforeach()
+endif()
+
+add_subdirectory(tests)

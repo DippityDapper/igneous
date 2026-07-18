@@ -10,6 +10,11 @@ namespace Engine
         return true;
     }
 
+    void SceneManager::ResetForTests()
+    {
+        RemoveSceneRoot();
+    }
+
     void SceneManager::SetSceneRoot(std::unique_ptr<SceneRoot> root)
     {
         if (!root)
@@ -23,7 +28,6 @@ namespace Engine
             return;
         }
         sceneRoot = std::move(root);
-        sceneRoot->Init();
     }
 
     void SceneManager::RemoveSceneRoot()

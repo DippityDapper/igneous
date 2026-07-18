@@ -100,11 +100,11 @@ namespace Engine
 
         float fps = 0;
         if (keepIndex && GetCurrentAnimation())
-            fps = GetCurrentAnimation()->GetCurrentFPS();
+            fps = GetCurrentAnimation()->GetElapsedTime();
 
         currentAnimationName = name;
         GetCurrentAnimation()->SetCurrentFrameIndex(index);
-        GetCurrentAnimation()->SetCurrentFPS(fps);
+        GetCurrentAnimation()->SetElapsedTime(fps);
     }
 
     Animation* Sprite::GetCurrentAnimation()

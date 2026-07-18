@@ -177,6 +177,7 @@ namespace Engine
         SDL_FRect src = sprite->GetSourceRect();
         SDL_RenderTexture(renderer, sprite->GetTexture(), &src, &dest);
     }
+
     void Renderer::BufferAdd(Vec2<float> position, SDL_Texture* texture, bool centered)
     {
         if (!texture)
@@ -226,9 +227,18 @@ namespace Engine
 
     void Renderer::Clean()
     {
+        if (!renderer)
+            return;
+
         ImGui_ImplSDLRenderer3_Shutdown();
         ImGui_ImplSDL3_Shutdown();
         ImGui::DestroyContext();
         SDL_DestroyRenderer(renderer);
+        renderer = nullptr;
+    }
+
+    void Renderer::ResetForTests()
+    {
+        Clean();
     }
 }

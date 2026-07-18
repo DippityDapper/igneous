@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build
+
+      - name: Configure
+        run: cmake --preset debug -DIGNEOUS_BUILD_TESTS=ON
+
+      - name: Build
+        run: |
+          cmake --build --preset debug --target igneous igneous_tests example_hello
+
+      - name: Test
+        env:
+          SDL_VIDEODRIVER: dummy
+        run: ctest --test-dir build --output-on-failure

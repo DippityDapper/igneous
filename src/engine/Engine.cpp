@@ -1,9 +1,11 @@
 #include "igneous/engine/Engine.hpp"
 
+#include <filesystem>
 #include <ranges>
 
 #include "imgui_impl_sdl3.h"
 #include "enet/enet.h"
+#include "SDL3/SDL_filesystem.h"
 #include "SDL3_mixer/SDL_mixer.h"
 
 #include "igneous/rendering/Renderer.hpp"
@@ -13,6 +15,10 @@
 #include "igneous/engine/Time.hpp"
 #include "igneous/input/Input.hpp"
 #include "igneous/scenes/SceneManager.hpp"
+
+#ifdef IGNEOUS_STEAM_ENABLED
+#include "igneous/networking/SteamBootstrap.hpp"
+#endif
 
 namespace Engine
 {
@@ -46,6 +52,14 @@ namespace Engine
         {
             SDL_Log("SDL init failed: %s", SDL_GetError());
             return false;
+        }
+
+        if (const char* basePath = SDL_GetBasePath())
+        {
+            std::error_code ec;
+            std::filesystem::current_path(basePath, ec);
+            if (ec)
+                SDL_Log("Failed to set working directory to %s: %s", basePath, ec.message().c_str());
         }
 
         if (!MIX_Init())
@@ -117,6 +131,10 @@ namespace Engine
 
             HandleEvents();
 
+#ifdef IGNEOUS_STEAM_ENABLED
+            SteamBootstrap::RunCallbacks();
+#endif
+
             if (SceneManager::GetSceneRoot())
                 SceneManager::GetSceneRoot()->Update(Time::deltaTime);
             if (Camera::main)
@@ -139,6 +157,10 @@ namespace Engine
             SceneManager::GetSceneRoot()->Clean();
         ResourceManager::Clean();
         enet_deinitialize();
+
+#ifdef IGNEOUS_STEAM_ENABLED
+        SteamBootstrap::Shutdown();
+#endif
 
         Renderer::Clean();
         Window::Clean();

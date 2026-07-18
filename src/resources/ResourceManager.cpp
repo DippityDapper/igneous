@@ -10,6 +10,30 @@
 
 namespace Engine
 {
+    void ResourceManager::ResetForTests()
+    {
+        spritesByZIndex.clear();
+        spriteIterators.clear();
+        textures.clear();
+        texturePathLookup.clear();
+        textureIdToPath.clear();
+        scaleMode = SDL_SCALEMODE_LINEAR;
+        sounds.clear();
+        soundPathLookup.clear();
+        soundIdToPath.clear();
+
+        if (mixer)
+        {
+            for (const auto& kvp: tracks)
+            {
+                MIX_DestroyTrack(kvp.first);
+            }
+            tracks.clear();
+            MIX_DestroyMixer(mixer);
+            mixer = nullptr;
+        }
+    }
+
     void ResourceManager::Clean()
     {
         spritesByZIndex.clear();
@@ -197,7 +221,7 @@ namespace Engine
 
                 Animation* animation = sprite->GetCurrentAnimation();
                 if (animation)
-                    animation->AddFPS(delta);
+                    animation->IncrementElapsedTime(delta);
             }
         }
     }

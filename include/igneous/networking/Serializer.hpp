@@ -9,20 +9,7 @@
 
 namespace Engine
 {
-    /**
-     * @class Serializer
-     * @brief Serializes data into an owned byte buffer.
-     *
-     * Mirrors the C# Serializer API: explicit Write() overloads per type,
-     * and a callback-based Write() for collections.
-     *
-     * Example usage:
-     * @code
-     * Serializer ser;
-     * ser.Write((int32_t)42).Write(std::string("Player"));
-     * std::vector<uint8_t> bytes = ser.GetBytes();
-     * @endcode
-     */
+
     class Serializer
     {
       private:
@@ -79,13 +66,6 @@ namespace Engine
             return WriteRaw(value);
         }
 
-        /**
-         * @brief Serializes a string as a 32-bit length prefix followed by UTF-8 bytes.
-         *
-         * @note Matches C#'s BinaryWriter.Write(string) 7-bit encoded length prefix for
-         * ASCII/short strings, but here we use a flat uint32 for simplicity and
-         * cross-language compatibility. Keep senders and receivers in sync.
-         */
         Serializer& Write(const std::string& value)
         {
             Write(static_cast<uint32_t>(value.size()));
@@ -93,9 +73,6 @@ namespace Engine
             return *this;
         }
 
-        /**
-         * @brief Serializes a byte array as a 32-bit length prefix followed by raw bytes.
-         */
         Serializer& Write(const std::vector<uint8_t>& value)
         {
             Write(static_cast<int32_t>(value.size()));
@@ -103,24 +80,6 @@ namespace Engine
             return *this;
         }
 
-        /**
-         * @brief Serializes a list of T using a caller-supplied write callback.
-         *
-         * The list is stored as a 32-bit element count followed by each element
-         * as written by writeItem.
-         *
-         * Example:
-         * @code
-         * std::vector<Player> players = ...;
-         * ser.Write<Player>(players, [&](const Player& p) {
-         *     ser.Write(p.name).Write(p.score);
-         * });
-         * @endcode
-         *
-         * @tparam T Element type.
-         * @param list  Collection to serialize.
-         * @param writeItem Callback invoked once per element.
-         */
         template<typename T>
         Serializer& Write(const std::vector<T>& list, std::function<void(const T&)> writeItem)
         {
@@ -130,29 +89,12 @@ namespace Engine
             return *this;
         }
 
-        /**
-         * @brief Returns a copy of the serialized bytes.
-         */
         std::vector<uint8_t> GetBytes() const
         {
             return _buffer;
         }
     };
 
-    /**
-     * @class Deserializer
-     * @brief Deserializes data from a byte buffer.
-     *
-     * Mirrors the C# Deserializer API: explicit ReadXxx() methods per type,
-     * and a callback-based ReadList() for collections.
-     *
-     * Example usage:
-     * @code
-     * Deserializer des(buffer);
-     * int32_t x  = des.ReadInt();
-     * std::string name = des.ReadString();
-     * @endcode
-     */
     class Deserializer
     {
       private:
@@ -218,9 +160,6 @@ namespace Engine
             return ReadRaw<double>();
         }
 
-        /**
-         * @brief Deserializes a string from a 32-bit length prefix followed by UTF-8 bytes.
-         */
         std::string ReadString()
         {
             uint32_t len = ReadUInt();
@@ -231,9 +170,6 @@ namespace Engine
             return str;
         }
 
-        /**
-         * @brief Deserializes a byte array from a 32-bit length prefix followed by raw bytes.
-         */
         std::vector<uint8_t> ReadBytes()
         {
             int32_t count = ReadInt();
@@ -244,26 +180,6 @@ namespace Engine
             return bytes;
         }
 
-        /**
-         * @brief Deserializes a list of T using a caller-supplied read callback.
-         *
-         * Reads a 32-bit element count, then invokes readItem() that many times
-         * to populate the returned vector.
-         *
-         * Example:
-         * @code
-         * auto players = des.ReadList<Player>([&]() {
-         *     Player p;
-         *     p.name  = des.ReadString();
-         *     p.score = des.ReadInt();
-         *     return p;
-         * });
-         * @endcode
-         *
-         * @tparam T Element type.
-         * @param readItem Callback invoked once per element, returning T.
-         * @return Populated vector of T.
-         */
         template<typename T>
         std::vector<T> ReadList(std::function<T()> readItem)
         {

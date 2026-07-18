@@ -8,6 +8,11 @@ namespace Engine
 {
     Camera* Camera::main = nullptr;
 
+    void Camera::ResetForTests()
+    {
+        main = nullptr;
+    }
+
     Camera::Camera()
     {
         if (main == nullptr)

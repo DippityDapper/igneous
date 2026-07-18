@@ -1,17 +1,128 @@
 #include "igneous/input/Input.hpp"
 
+#include <algorithm>
+#include <cmath>
 #include <ranges>
 
+#include "igneous/input/InputAction.hpp"
+#include "igneous/input/InputMap.hpp"
+#include "igneous/input/InputMapQuery.hpp"
 #include "imgui_internal.h"
 #include "SDL3/SDL.h"
 
 namespace Engine
 {
+    namespace
+    {
+        float ClampAxisHalf(float value, bool positive)
+        {
+            if (positive)
+                return std::clamp(value, 0.0f, 1.0f);
+            return std::clamp(-value, 0.0f, 1.0f);
+        }
+    }
+
+    void Input::UpdateSemanticGamepadAxis(SDL_JoystickID instanceId, SDL_GamepadAxis axis, float value)
+    {
+        auto& axisMap = gamepadSemanticAxisStates[instanceId];
+
+        auto setValue = [&](GamepadAxis semanticAxis, float semanticValue)
+        {
+            axisMap[semanticAxis].value = semanticValue;
+        };
+
+        switch (axis)
+        {
+            case SDL_GAMEPAD_AXIS_LEFTX:
+                if (value >= 0.0f)
+                {
+                    setValue(GamepadAxis::LeftXRight, ClampAxisHalf(value, true));
+                    setValue(GamepadAxis::LeftXLeft, 0.0f);
+                }
+                else
+                {
+                    setValue(GamepadAxis::LeftXLeft, ClampAxisHalf(value, false));
+                    setValue(GamepadAxis::LeftXRight, 0.0f);
+                }
+                break;
+            case SDL_GAMEPAD_AXIS_LEFTY:
+                if (value >= 0.0f)
+                {
+                    setValue(GamepadAxis::LeftYDown, ClampAxisHalf(value, true));
+                    setValue(GamepadAxis::LeftYUp, 0.0f);
+                }
+                else
+                {
+                    setValue(GamepadAxis::LeftYUp, ClampAxisHalf(value, false));
+                    setValue(GamepadAxis::LeftYDown, 0.0f);
+                }
+                break;
+            case SDL_GAMEPAD_AXIS_RIGHTX:
+                if (value >= 0.0f)
+                {
+                    setValue(GamepadAxis::RightXRight, ClampAxisHalf(value, true));
+                    setValue(GamepadAxis::RightXLeft, 0.0f);
+                }
+                else
+                {
+                    setValue(GamepadAxis::RightXLeft, ClampAxisHalf(value, false));
+                    setValue(GamepadAxis::RightXRight, 0.0f);
+                }
+                break;
+            case SDL_GAMEPAD_AXIS_RIGHTY:
+                if (value >= 0.0f)
+                {
+                    setValue(GamepadAxis::RightYDown, ClampAxisHalf(value, true));
+                    setValue(GamepadAxis::RightYUp, 0.0f);
+                }
+                else
+                {
+                    setValue(GamepadAxis::RightYUp, ClampAxisHalf(value, false));
+                    setValue(GamepadAxis::RightYDown, 0.0f);
+                }
+                break;
+            case SDL_GAMEPAD_AXIS_LEFT_TRIGGER:
+                setValue(GamepadAxis::TriggerLeft, std::clamp(value, 0.0f, 1.0f));
+                break;
+            case SDL_GAMEPAD_AXIS_RIGHT_TRIGGER:
+                setValue(GamepadAxis::TriggerRight, std::clamp(value, 0.0f, 1.0f));
+                break;
+            default:
+                break;
+        }
+    }
+
     bool Input::Init()
     {
         InitGamepads();
         AddInputLayer("_default", 0);
         return true;
+    }
+
+    void Input::ResetForTests()
+    {
+        for (auto& [id, gamepad]: gamepads)
+        {
+            if (gamepad)
+                SDL_CloseGamepad(gamepad);
+        }
+
+        layers.clear();
+        keyEvents.clear();
+        mouseEvents.clear();
+        gamepads.clear();
+        gamepadButtonEvents.clear();
+        gamepadAxisValues.clear();
+        gamepadSemanticAxisStates.clear();
+        inputMap.reset();
+
+        mouseX = 0;
+        mouseY = 0;
+        mouseVelX = 0;
+        mouseVelY = 0;
+        mouseWheelVelX = 0;
+        mouseWheelVelY = 0;
+        wasWindowResized = false;
     }
 
     bool Input::InitGamepads()
@@ -27,7 +138,6 @@ namespace Engine
                 if (gamepad)
                 {
                     gamepads[id] = gamepad;
-                    SDL_Log("Gamepad connected: %s (id %d)", SDL_GetGamepadName(gamepad), id);
                 }
             }
             SDL_free(joystickIds);
@@ -60,6 +170,11 @@ namespace Engine
                 event.pressedLastFrame = event.pressed;
                 event.handled = false;
             }
+        }
+        for (auto& axisMap: gamepadSemanticAxisStates | std::views::values)
+        {
+            for (auto& state: axisMap | std::views::values)
+                state.handled = false;
         }
     }
 
@@ -114,7 +229,6 @@ namespace Engine
                 if (gamepad)
                 {
                     gamepads[id] = gamepad;
-                    SDL_Log("Gamepad connected: %s (id %d)", SDL_GetGamepadName(gamepad), id);
                 }
             }
         }
@@ -127,7 +241,7 @@ namespace Engine
                 gamepads.erase(id);
                 gamepadButtonEvents.erase(id);
                 gamepadAxisValues.erase(id);
-                SDL_Log("Gamepad disconnected (id %d)", id);
+                gamepadSemanticAxisStates.erase(id);
             }
         }
         if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || event.type == SDL_EVENT_GAMEPAD_BUTTON_UP)
@@ -141,9 +255,9 @@ namespace Engine
         {
             SDL_JoystickID id = event.gaxis.which;
             SDL_GamepadAxis axis = static_cast<SDL_GamepadAxis>(event.gaxis.axis);
-            // SDL axis range is -32768 to 32767; normalize to -1.0..1.0
-            // Triggers report 0 to 32767, so they map to 0.0..1.0 correctly
-            gamepadAxisValues[id][axis] = event.gaxis.value / 32767.0f;
+            float value = static_cast<float>(event.gaxis.value) / 32767.0f;
+            gamepadAxisValues[id][axis] = value;
+            UpdateSemanticGamepadAxis(id, axis, value);
         }
     }
 
@@ -170,12 +284,130 @@ namespace Engine
 
     std::vector<InputLayer*> Input::GetInputLayers()
     {
-        std::vector<InputLayer*> _layers{};
+        std::vector<InputLayer*> sortedLayers{};
+        sortedLayers.reserve(layers.size());
         for (const auto& layer: layers | std::views::values)
+            sortedLayers.push_back(layer.get());
+
+        std::ranges::sort(sortedLayers, [](const InputLayer* a, const InputLayer* b)
         {
-            _layers.push_back(layer.get());
+            return a->GetPriority() > b->GetPriority();
+        });
+        return sortedLayers;
+    }
+
+    void Input::SetInputMap(std::shared_ptr<InputMap> map)
+    {
+        inputMap = std::move(map);
+    }
+
+    InputMap* Input::GetInputMap()
+    {
+        return inputMap.get();
+    }
+
+    InputAction* Input::GetInputAction(const std::string& actionName)
+    {
+        if (!inputMap)
+            return nullptr;
+        return inputMap->FindAction(actionName);
+    }
+
+    float Input::GetAction(const std::string& actionName)
+    {
+        return inputMap ? inputMap->GetValue(actionName) : 0.0f;
+    }
+
+    bool Input::IsActionPressed(const std::string& actionName)
+    {
+        return inputMap ? inputMap->IsPressed(actionName) : false;
+    }
+
+    bool Input::IsActionJustPressed(const std::string& actionName)
+    {
+        return inputMap ? inputMap->IsJustPressed(actionName) : false;
+    }
+
+    bool Input::IsActionJustReleased(const std::string& actionName)
+    {
+        return inputMap ? inputMap->IsJustReleased(actionName) : false;
+    }
+
+    float Input::GetAxis(const std::string& positiveAction, const std::string& negativeAction)
+    {
+        return InputMapQuery::GetAxis(positiveAction, negativeAction);
+    }
+
+    void Input::HandleAllKeys(const std::vector<SDL_Keycode>* exceptions)
+    {
+        for (auto& [key, event]: keyEvents)
+        {
+            if (exceptions)
+            {
+                if (std::ranges::find(*exceptions, key) != exceptions->end())
+                    continue;
+            }
+            event.handled = true;
         }
-        return _layers;
+    }
+
+    void Input::HandleAllButtons(const std::vector<SDL_MouseButtonFlags>* exceptions)
+    {
+        for (auto& [button, event]: mouseEvents)
+        {
+            if (exceptions)
+            {
+                if (std::ranges::find(*exceptions, button) != exceptions->end())
+                    continue;
+            }
+            event.handled = true;
+        }
+    }
+
+    void Input::HandleAllGamepadButtons(const std::vector<SDL_GamepadButton>* exceptions)
+    {
+        for (auto& [deviceId, buttonMap]: gamepadButtonEvents)
+        {
+            (void) deviceId;
+            for (auto& [button, event]: buttonMap)
+            {
+                if (exceptions)
+                {
+                    if (std::ranges::find(*exceptions, button) != exceptions->end())
+                        continue;
+                }
+                event.handled = true;
+            }
+        }
+    }
+
+    void Input::HandleAllGamepadAxes(const std::vector<GamepadAxis>* exceptions)
+    {
+        for (auto& [deviceId, axisMap]: gamepadSemanticAxisStates)
+        {
+            (void) deviceId;
+            for (auto& [axis, state]: axisMap)
+            {
+                if (exceptions)
+                {
+                    if (std::ranges::find(*exceptions, axis) != exceptions->end())
+                        continue;
+                }
+                state.handled = true;
+            }
+        }
+    }
+
+    void Input::HandleAllInputs(
+        const std::vector<SDL_Keycode>* keyExceptions,
+        const std::vector<SDL_MouseButtonFlags>* mouseButtonExceptions,
+        const std::vector<SDL_GamepadButton>* gamepadButtonExceptions,
+        const std::vector<GamepadAxis>* gamepadAxisExceptions)
+    {
+        HandleAllKeys(keyExceptions);
+        HandleAllButtons(mouseButtonExceptions);
+        HandleAllGamepadButtons(gamepadButtonExceptions);
+        HandleAllGamepadAxes(gamepadAxisExceptions);
     }
 
     void Input::HandleKey(SDL_Keycode key)
@@ -362,6 +594,56 @@ namespace Engine
         return axisMap[axis];
     }
 
+    void Input::HandleSemanticGamepadAxis(SDL_JoystickID instanceId, GamepadAxis axis)
+    {
+        if (!gamepadSemanticAxisStates.contains(instanceId))
+            return;
+        if (!gamepadSemanticAxisStates[instanceId].contains(axis))
+            return;
+        gamepadSemanticAxisStates[instanceId][axis].handled = true;
+    }
+
+    bool Input::IsSemanticGamepadAxisHandled(SDL_JoystickID instanceId, GamepadAxis axis)
+    {
+        if (!gamepadSemanticAxisStates.contains(instanceId))
+            return false;
+        auto& axisMap = gamepadSemanticAxisStates[instanceId];
+        if (!axisMap.contains(axis))
+            return false;
+        return axisMap[axis].handled;
+    }
+
+    float Input::GetSemanticGamepadAxis(SDL_JoystickID instanceId, GamepadAxis axis, float deadZone, bool skipIfHandled)
+    {
+        if (!gamepadSemanticAxisStates.contains(instanceId))
+            return 0.0f;
+        auto& axisMap = gamepadSemanticAxisStates[instanceId];
+        if (!axisMap.contains(axis))
+            return 0.0f;
+
+        SemanticAxisState& state = axisMap[axis];
+        if (skipIfHandled && state.handled)
+            return 0.0f;
+        if (std::abs(state.value) <= deadZone)
+            return 0.0f;
+
+        HandleSemanticGamepadAxis(instanceId, axis);
+        return state.value;
+    }
+
+    Vec2<float> Input::GetSemanticGamepadStick(
+        SDL_JoystickID instanceId,
+        GamepadAxis xAxis,
+        GamepadAxis yAxis,
+        float deadZone,
+        bool skipIfHandled)
+    {
+        return {
+            GetSemanticGamepadAxis(instanceId, xAxis, deadZone, skipIfHandled),
+            GetSemanticGamepadAxis(instanceId, yAxis, deadZone, skipIfHandled),
+        };
+    }
+
     std::vector<SDL_JoystickID> Input::GetConnectedGamepads()
     {
         std::vector<SDL_JoystickID> ids;
@@ -374,5 +656,42 @@ namespace Engine
     Vec2<float> Input::GetGamepadStick(SDL_JoystickID instanceId, SDL_GamepadAxis xAxis, SDL_GamepadAxis yAxis)
     {
         return {GetGamepadAxis(instanceId, xAxis), GetGamepadAxis(instanceId, yAxis)};
+    }
+
+    void Input::RumbleGamepad(SDL_JoystickID instanceId, float lowFrequency, float highFrequency, uint32_t durationMs)
+    {
+        if (!gamepads.contains(instanceId))
+            return;
+
+        if (lowFrequency < 0)
+            lowFrequency = 0;
+        if (highFrequency < 0)
+            highFrequency = 0;
+        if (lowFrequency > 1)
+            lowFrequency = 1;
+        if (highFrequency > 1)
+            highFrequency = 1;
+ uint16_t lf = static_cast<uint16_t>(lowFrequency * UINT16_MAX);
+        uint16_t rf = static_cast<uint16_t>(highFrequency * UINT16_MAX);
+        SDL_RumbleGamepad(gamepads[instanceId], lf, rf, durationMs);
+    }
+
+    void Input::RumbleGamepadTriggers(SDL_JoystickID instanceId, float leftRumble, float rightRumble, uint32_t durationMs)
+    {
+        if (!gamepads.contains(instanceId))
+            return;
+
+        if (leftRumble < 0)
+            leftRumble = 0;
+        if (rightRumble < 0)
+            rightRumble = 0;
+        if (leftRumble > 1)
+            leftRumble = 1;
+        if (rightRumble > 1)
+            rightRumble = 1;
+
+        uint16_t lr = static_cast<uint16_t>(leftRumble * UINT16_MAX);
+        uint16_t rr = static_cast<uint16_t>(rightRumble * UINT16_MAX);
+        SDL_RumbleGamepadTriggers(gamepads[instanceId], lr, rr, durationMs);
     }
 }

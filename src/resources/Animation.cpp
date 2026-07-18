@@ -5,7 +5,7 @@
 namespace Engine
 {
     Animation::Animation(const Animation& other)
-        : name(other.name), frameIndex(other.frameIndex), fps(other.fps)
+        : name(other.name), frameIndex(other.frameIndex), fps(other.fps), fpsDelta(other.fpsDelta)
     {
         for (const auto& frame: other.frames)
         {
@@ -21,17 +21,18 @@ namespace Engine
     void Animation::SetFPS(float _fps)
     {
         fps = _fps;
+        fpsDelta = 1.0f / _fps;
     }
 
-    void Animation::AddFPS(double delta)
+    void Animation::IncrementElapsedTime(double delta)
     {
-        currentFPS += delta;
-        if (currentFPS > fps)
+        elapsedTime += static_cast<float>(delta);
+        if (elapsedTime > fpsDelta)
         {
             frameIndex++;
             if (frameIndex >= frames.size())
                 frameIndex = 0;
-            currentFPS -= fps;
+            elapsedTime -= fpsDelta;
         }
     }
 
@@ -152,9 +153,9 @@ namespace Engine
         return frameIndex;
     }
 
-    float Animation::GetCurrentFPS()
+    float Animation::GetElapsedTime()
     {
-        return currentFPS;
+        return elapsedTime;
     }
 
     void Animation::SetCurrentFrameIndex(int index)
@@ -164,11 +165,11 @@ namespace Engine
         frameIndex = index;
     }
 
-    void Animation::SetCurrentFPS(float _fps)
+    void Animation::SetElapsedTime(float newTime)
     {
-        if (_fps > fps)
-            _fps = fps;
-        currentFPS = _fps;
+        if (newTime > fpsDelta)
+            newTime = fpsDelta;
+        elapsedTime = newTime;
     }
 
     std::vector<AnimationFrame*> Animation::GetFrames()

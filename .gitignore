@@ -1,7 +1,44 @@
-.idea
-cmake-build-debug
-.cache
-build
-.clangd
-.clang-format
+# --- Build outputs ---
+/build/
+/cmake-build-*/
+/out/
+
+# --- CMake (generated) ---
+/CMakeCache.txt
+/CMakeFiles/
+/cmake_install.cmake
+/compile_commands.json
+/CTestTestfile.cmake
+/DartConfiguration.tcl
+/Testing/
+
+# --- IDE / editor (local; use CMakePresets.json + docs/how-to-build.md) ---
+.vscode/
+.cursor/
+.idea/
+.vs/
+*.code-workspace
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# --- Tool caches ---
+.cache/
+
+# --- Runtime / generated app state ---
+imgui.ini
+
+# --- Proprietary or machine-local SDKs ---
 libs/steamworks/
+
+# --- Local scratch / test checkouts ---
+tower-of-riz/
+_game_test/
+
+# --- Docs tooling (local) ---
+docs/.obsidian/
+
+# --- OS cruft ---
+.DS_Store
+Thumbs.db

@@ -1,266 +1,233 @@
 #include "igneous/networking/SteamNetwork.hpp"
 
-#include "upnpcommands.h"
-
 #include <SDL3/SDL_log.h>
 
 #include "igneous/networking/NetworkEvents.hpp"
-
-#include <ranges>
+#include "igneous/networking/NetworkPeerIds.hpp"
+#include "igneous/networking/SteamBootstrap.hpp"
 
 namespace Engine
 {
 
-    // =============================================================================
-    // Steam-enabled implementation
-    // =============================================================================
-
 #ifdef IGNEOUS_STEAM_ENABLED
 
-    const std::vector<uint8_t> SteamNetwork::PingPacket = {static_cast<uint8_t>(NetworkEventType::Ping)};
+    namespace
+    {
+        ISteamNetworkingSockets* GetSteamSockets()
+        {
+            if (!SteamBootstrap::IsInitialized())
+                return nullptr;
+            return SteamNetworkingSockets();
+        }
+    }
 
-    double SteamNetwork::GetTime() const
+    double SteamNetwork::GetTime()
     {
         using namespace std::chrono;
         return duration<double>(system_clock::now().time_since_epoch()).count();
     }
 
-    // -------------------------------------------------------------------------
-    // Server constructor
-    // -------------------------------------------------------------------------
-
-    SteamNetwork::SteamNetwork(int port, bool localOnly)
+    int SteamNetwork::ToSteamFlags(TransportType flags)
     {
-        _isServer = true;
-        _port = port;
-
-        if (!localOnly)
-        {
-            int error = 0;
-            _upnpDevList = upnpDiscover(2000, nullptr, nullptr, UPNP_LOCAL_PORT_ANY, 0, 2, &error);
-
-            if (_upnpDevList)
-            {
-                char lanAddr[64] = {};
-                char wanAddr[64] = {};
-                int igdStatus = UPNP_GetValidIGD(_upnpDevList, &_upnpUrls, &_upnpData, lanAddr, sizeof(lanAddr), wanAddr, sizeof(wanAddr));
-
-                if (igdStatus == 1)
-                {
-                    const std::string portStr = std::to_string(port);
-                    int mapResult = UPNP_AddPortMapping(
-                            _upnpUrls.controlURL,
-                            _upnpData.first.servicetype,
-                            portStr.c_str(), // external port
-                            portStr.c_str(), // internal port
-                            lanAddr,         // internal client (our LAN IP)
-                            "Interspace",    // description
-                            "UDP",           // protocol — change to TCP if needed
-                            nullptr,         // remote host (nullptr = any)
-                            "0"              // lease duration (0 = indefinite)
-                    );
-
-                    if (mapResult == UPNPCOMMAND_SUCCESS)
-                    {
-                        _upnpMapped = true;
-
-                        char externalIP[40] = {};
-                        UPNP_GetExternalIPAddress(
-                                _upnpUrls.controlURL,
-                                _upnpData.first.servicetype,
-                                externalIP);
-                        SDL_Log("UPnP: Port %d mapped successfully. External IP: %s", port, externalIP);
-                    }
-                    else
-                    {
-                        SDL_Log("UPnP: Port mapping failed with code %d", mapResult);
-                    }
-                }
-                else
-                {
-                    SDL_Log("UPnP: No valid connected gateway found (IGD status %d).", igdStatus);
-                }
-            }
-            else
-            {
-                SDL_Log("UPnP: Discovery failed (error %d).", error);
-            }
-        }
-
-        SteamNetworkingIPAddr addr{};
-        addr.Clear();
-        addr.m_port = static_cast<uint16_t>(port);
-
-        if (localOnly)
-            addr.ParseString("127.0.0.1");
-
-        _listenSocket = SteamNetworkingSockets()->CreateListenSocketIP(addr, 0, nullptr);
-        if (_listenSocket == k_HSteamListenSocket_Invalid)
-        {
-            SDL_Log("SteamNetwork: Failed to create listen socket.");
-            _fromNetwork.Push({NetworkEventType::ConnectionFailure});
-            return;
-        }
-
-        _pollGroup = SteamNetworkingSockets()->CreatePollGroup();
-        if (_pollGroup == k_HSteamNetPollGroup_Invalid)
-        {
-            SDL_Log("SteamNetwork: Failed to create poll group.");
-            SteamNetworkingSockets()->CloseListenSocket(_listenSocket);
-            _listenSocket = k_HSteamListenSocket_Invalid;
-            _fromNetwork.Push({NetworkEventType::ConnectionFailure});
-            return;
-        }
-
-        _running = true;
-        _fromNetwork.Push({NetworkEventType::ConnectionSuccess});
-        _networkThread = std::thread(&SteamNetwork::NetworkLoop, this);
-    }
-
-    // -------------------------------------------------------------------------
-    // Client constructor
-    // -------------------------------------------------------------------------
-
-    SteamNetwork::SteamNetwork(int port, const std::string& ip)
-    {
-        _isServer = false;
-
-        SteamNetworkingIPAddr addr{};
-        addr.ParseString(ip.c_str());
-        addr.m_port = static_cast<uint16_t>(port);
-
-        _serverConnection = SteamNetworkingSockets()->ConnectByIPAddress(addr, 0, nullptr);
-        if (_serverConnection == k_HSteamNetConnection_Invalid)
-        {
-            SDL_Log("SteamNetwork: Failed to connect to %s:%d.", ip.c_str(), port);
-            _fromNetwork.Push({NetworkEventType::ConnectionFailure});
-            return;
-        }
-
-        _running = true;
-        _networkThread = std::thread(&SteamNetwork::NetworkLoop, this);
-    }
-
-    // -------------------------------------------------------------------------
-    // Loopback constructor
-    // -------------------------------------------------------------------------
-
-    SteamNetwork::SteamNetwork()
-    {
-        _isServer = false;
-        _running = true;
-        _fromNetwork.Push({NetworkEventType::ConnectionSuccess});
+        return flags == TransportType::Reliable ? k_nSteamNetworkingSend_Reliable : k_nSteamNetworkingSend_Unreliable;
     }
 
     SteamNetwork::~SteamNetwork()
     {
-        SteamNetwork::Clean();
+        Clean();
     }
 
-    // -------------------------------------------------------------------------
-    // Connection status callback (runs on the network thread via RunCallbacks)
-    // -------------------------------------------------------------------------
-
-    void SteamNetwork::OnConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t* pCallback)
+    void SteamNetwork::Connect()
     {
-        auto state = pCallback->m_info.m_eState;
-        uint32_t connId = pCallback->m_hConn;
+        isServer = true;
+        clientWatchdog.enabled = false;
+
+        ISteamNetworkingSockets* sockets = GetSteamSockets();
+        if (!sockets)
+        {
+            SDL_Log("SteamNetwork: Steam not initialized. Call SteamBootstrap::Init() first.");
+            loopback.Forward({NetworkEventType::ConnectionFailure});
+            return;
+        }
+
+        listenSocket = sockets->CreateListenSocketP2P(0, 0, nullptr);
+        if (listenSocket == k_HSteamListenSocket_Invalid)
+        {
+            SDL_Log("SteamNetwork: Failed to create P2P listen socket.");
+            loopback.Forward({NetworkEventType::ConnectionFailure});
+            return;
+        }
+
+        pollGroup = sockets->CreatePollGroup();
+        if (pollGroup == k_HSteamNetPollGroup_Invalid)
+        {
+            SDL_Log("SteamNetwork: Failed to create poll group.");
+            loopback.Forward({NetworkEventType::ConnectionFailure});
+            return;
+        }
+
+        running = true;
+        networkThread = std::thread(&SteamNetwork::NetworkLoop, this);
+        loopback.Forward({NetworkEventType::ConnectionSuccess});
+    }
+
+    void SteamNetwork::Connect(uint64_t hostSteamId)
+    {
+        if (hostSteamId == 0)
+        {
+            isServer = false;
+            running = true;
+            connected = true;
+            clientWatchdog.enabled = false;
+            loopback.Forward({NetworkEventType::ConnectionSuccess});
+            return;
+        }
+
+        isServer = false;
+        clientWatchdog.enabled = false;
+
+        ISteamNetworkingSockets* sockets = GetSteamSockets();
+        if (!sockets)
+        {
+            SDL_Log("SteamNetwork: Steam not initialized. Call SteamBootstrap::Init() first.");
+            loopback.Forward({NetworkEventType::ConnectionFailure});
+            return;
+        }
+
+        SteamNetworkingIdentity identity{};
+        identity.SetSteamID64(hostSteamId);
+
+        serverConnection = sockets->ConnectP2P(identity, 0, 0, nullptr);
+        if (serverConnection == k_HSteamNetConnection_Invalid)
+        {
+            SDL_Log("SteamNetwork: Failed to start connection.");
+            loopback.Forward({NetworkEventType::ConnectionFailure});
+            return;
+        }
+
+        running = true;
+        networkThread = std::thread(&SteamNetwork::NetworkLoop, this);
+        loopback.Forward({NetworkEventType::ConnectionSuccess});
+    }
+
+    void SteamNetwork::OnConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t* callback)
+    {
+        const auto state = callback->m_info.m_eState;
+        const uint32_t connId = callback->m_hConn;
 
         switch (state)
         {
         case k_ESteamNetworkingConnectionState_Connecting:
-        {
-            if (_isServer)
+            if (isServer)
             {
-                SteamNetworkingSockets()->AcceptConnection(pCallback->m_hConn);
-                SteamNetworkingSockets()->SetConnectionPollGroup(pCallback->m_hConn, _pollGroup);
+                SteamNetworkingSockets()->AcceptConnection(callback->m_hConn);
+                SteamNetworkingSockets()->SetConnectionPollGroup(callback->m_hConn, pollGroup);
             }
             break;
-        }
         case k_ESteamNetworkingConnectionState_Connected:
-        {
-            _connected = true;
-            _connections[connId] = pCallback->m_hConn;
+            connected = true;
+            connections[connId] = callback->m_hConn;
 
-            if (_isServer)
+            if (isServer)
             {
-                _fromNetwork.Push({NetworkEventType::ClientConnected, connId});
+                serverPeers.TrackPeer(connId, GetTime());
+                fromNetwork.Push({NetworkEventType::ClientConnected, connId});
             }
             else
             {
-                _serverConnection = pCallback->m_hConn;
-                _lastPingTime = GetTime();
-                _fromNetwork.Push({NetworkEventType::ConnectionSuccess});
+                serverConnection = callback->m_hConn;
+                const double connectedAt = GetTime();
+                clientWatchdog.Reset(connectedAt);
+                clientWatchdog.enabled = true;
+                fromNetwork.Push({NetworkEventType::ConnectionSuccess});
             }
             break;
-        }
         case k_ESteamNetworkingConnectionState_ClosedByPeer:
         case k_ESteamNetworkingConnectionState_ProblemDetectedLocally:
-        {
-            SteamNetworkingSockets()->CloseConnection(pCallback->m_hConn, 0, nullptr, false);
+            SteamNetworkingSockets()->CloseConnection(callback->m_hConn, 0, nullptr, false);
 
-            if (_isServer)
-            {
-                _fromNetwork.Push({NetworkEventType::ClientDisconnected, connId});
-            }
+            if (isServer)
+                fromNetwork.Push({NetworkEventType::ClientDisconnected, connId});
             else
-            {
-                _fromNetwork.Push({NetworkEventType::ConnectionFailure});
-            }
+                fromNetwork.Push({NetworkEventType::ServerDisconnected});
 
-            _connections.erase(connId);
+            connections.erase(connId);
+            serverPeers.RemovePeer(connId);
+            clientWatchdog.enabled = false;
             break;
-        }
         default:
             break;
         }
     }
 
-    // -------------------------------------------------------------------------
-    // Network thread
-    // -------------------------------------------------------------------------
-
     void SteamNetwork::NetworkLoop()
     {
-        while (_running)
+        while (running)
         {
-            double now = GetTime();
+            const double now = GetTime();
 
-            if (_isServer)
+            if (isServer)
+            {
                 ServerPing(now);
-            else if (ClientTimeout(now))
+                DisconnectStaleConnections(now);
+            }
+            else if (HandleClientTimeout(now))
+            {
                 return;
+            }
 
             SteamNetworkingSockets()->RunCallbacks();
             ReceiveMessages();
-
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
     }
 
     void SteamNetwork::ServerPing(double now)
     {
-        if (now - _lastPingSend < 1.0)
+        if (!serverPeers.TryConsumePingSend(now))
             return;
 
-        _lastPingSend = now;
-
-        for (auto& conn: _connections | std::views::values)
-            SendMessage(conn, PingPacket, 0);
+        for (const auto& [connId, conn]: connections)
+        {
+            (void) connId;
+            SendMessage(conn, ClientConnectionWatchdog::PingPacket, TransportType::Reliable);
+        }
     }
 
-    bool SteamNetwork::ClientTimeout(double now)
+    bool SteamNetwork::HandleClientTimeout(double now)
     {
-        if (!_connected || _serverConnection == k_HSteamNetConnection_Invalid)
-            return false;
-        if (now - _lastPingTime < PingTimeout)
+        if (!clientWatchdog.HasTimedOut(now))
             return false;
 
-        _fromNetwork.Push({NetworkEventType::ServerDisconnected});
-        SteamNetworkingSockets()->CloseConnection(_serverConnection, 0, nullptr, false);
-        _serverConnection = k_HSteamNetConnection_Invalid;
-        _running = false;
+        SDL_Log("SteamNetwork: server connection timed out.");
+        fromNetwork.Push({NetworkEventType::ServerDisconnected});
+
+        if (serverConnection != k_HSteamNetConnection_Invalid)
+            SteamNetworkingSockets()->CloseConnection(serverConnection, 0, nullptr, false);
+        clientWatchdog.enabled = false;
+        running = false;
         return true;
+    }
+
+    void SteamNetwork::DisconnectStaleConnections(double now)
+    {
+        for (uint32_t connId: serverPeers.CollectStalePeerIds(now))
+            DisconnectStaleConnection(connId);
+    }
+
+    void SteamNetwork::DisconnectStaleConnection(uint32_t connId)
+    {
+        if (!serverPeers.RemovePeer(connId))
+            return;
+
+        fromNetwork.Push({NetworkEventType::ClientDisconnected, connId});
+
+        auto it = connections.find(connId);
+        if (it != connections.end())
+        {
+            SteamNetworkingSockets()->CloseConnection(it->second, 0, nullptr, false);
+            connections.erase(it);
+        }
     }
 
     void SteamNetwork::ReceiveMessages()
@@ -268,90 +235,79 @@ namespace Engine
         SteamNetworkingMessage_t* messages[64];
         int count = 0;
 
-        if (_isServer)
-            count = SteamNetworkingSockets()->ReceiveMessagesOnPollGroup(_pollGroup, messages, 64);
-        else if (_serverConnection != k_HSteamNetConnection_Invalid)
-            count = SteamNetworkingSockets()->ReceiveMessagesOnConnection(_serverConnection, messages, 64);
+        if (isServer)
+            count = SteamNetworkingSockets()->ReceiveMessagesOnPollGroup(pollGroup, messages, 64);
+        else if (serverConnection != k_HSteamNetConnection_Invalid)
+            count = SteamNetworkingSockets()->ReceiveMessagesOnConnection(serverConnection, messages, 64);
 
-        for (int i = 0; i < count; i++)
+        const double now = GetTime();
+        for (int i = 0; i < count; ++i)
         {
             SteamNetworkingMessage_t* steamMsg = messages[i];
-
             const uint8_t* data = static_cast<const uint8_t*>(steamMsg->m_pData);
-            int dataLen = steamMsg->m_cbSize;
+            const int dataLen = steamMsg->m_cbSize;
 
-            // Ping packet — reset timeout timer, don't forward to game
             if (dataLen == 1 && data[0] == static_cast<uint8_t>(NetworkEventType::Ping))
             {
-                _lastPingTime = GetTime();
+                if (isServer)
+                    serverPeers.MarkActivity(steamMsg->m_conn, now);
+                else
+                    clientWatchdog.MarkActivity(now);
                 steamMsg->Release();
                 continue;
             }
+
+            if (isServer)
+                serverPeers.MarkActivity(steamMsg->m_conn, now);
+            else
+                clientWatchdog.MarkActivity(now);
 
             NetworkMessage msg;
             msg.type = NetworkEventType::Message;
             msg.peerId = steamMsg->m_conn;
             msg.data.assign(data, data + dataLen);
             steamMsg->Release();
-
-            _fromNetwork.Push(msg);
+            fromNetwork.Push(std::move(msg));
         }
     }
 
-    void SteamNetwork::SendMessage(HSteamNetConnection conn, const std::vector<uint8_t>& data, uint32_t flags)
+    void SteamNetwork::SendMessage(HSteamNetConnection conn, const std::vector<uint8_t>& data, TransportType flags)
     {
-        // Map ENet-style flags: bit 0 = reliable
-        int steamFlags = (flags & 1) != 0 ? k_nSteamNetworkingSend_Reliable : k_nSteamNetworkingSend_Unreliable;
-
         SteamNetworkingSockets()->SendMessageToConnection(
                 conn,
                 data.data(),
                 static_cast<uint32_t>(data.size()),
-                steamFlags,
+                ToSteamFlags(flags),
                 nullptr);
     }
 
-    // -------------------------------------------------------------------------
-    // Public interface
-    // -------------------------------------------------------------------------
-
-    void SteamNetwork::SendToServer(const std::vector<uint8_t>& data, uint32_t flags)
+    void SteamNetwork::SendToServer(const std::vector<uint8_t>& data, TransportType flags)
     {
-        if (loopbackPeer != nullptr)
+        if (loopback.IsLinked())
         {
-            NetworkMessage msg;
-            msg.type = NetworkEventType::Message;
-            msg.peerId = 0;
-            msg.data = data;
-            msg.flags = flags;
-            loopbackPeer->loopbackMessages.push(std::move(msg));
+            loopback.Forward({NetworkEventType::Message, NetworkPeerIds::Local, data});
             return;
         }
 
-        if (_isServer || _serverConnection == k_HSteamNetConnection_Invalid)
+        if (isServer || serverConnection == k_HSteamNetConnection_Invalid)
             return;
 
-        SendMessage(_serverConnection, data, flags);
+        SendMessage(serverConnection, data, flags);
     }
 
-    void SteamNetwork::SendToClient(uint32_t peerId, const std::vector<uint8_t>& data, uint32_t flags)
+    void SteamNetwork::SendToClient(uint32_t peerId, const std::vector<uint8_t>& data, TransportType flags)
     {
-        if (loopbackPeer != nullptr && peerId == 0)
+        if (loopback.IsLinked() && peerId == NetworkPeerIds::Local)
         {
-            NetworkMessage msg;
-            msg.type = NetworkEventType::Message;
-            msg.peerId = peerId;
-            msg.data = data;
-            msg.flags = flags;
-            loopbackPeer->loopbackMessages.push(std::move(msg));
+            loopback.Forward({NetworkEventType::Message, peerId, data});
             return;
         }
 
-        if (!_isServer)
+        if (!isServer)
             return;
 
-        auto it = _connections.find(peerId);
-        if (it == _connections.end())
+        auto it = connections.find(peerId);
+        if (it == connections.end())
             return;
 
         SendMessage(it->second, data, flags);
@@ -359,114 +315,83 @@ namespace Engine
 
     void SteamNetwork::Poll()
     {
-        while (auto msg = _fromNetwork.Pop())
+        while (auto msg = fromNetwork.Pop())
         {
             if (onMessageReceived)
                 onMessageReceived(*msg);
         }
-
-        while (!loopbackMessages.empty())
-        {
-            if (onMessageReceived)
-                onMessageReceived(loopbackMessages.front());
-            loopbackMessages.pop();
-        }
     }
 
     bool SteamNetwork::Connected()
     {
-        return _running && _connected;
+        return running && connected;
     }
 
     void SteamNetwork::Clean()
     {
-        _running = false;
+        running = false;
+        clientWatchdog.enabled = false;
 
-        if (_networkThread.joinable())
-            _networkThread.join();
+        if (networkThread.joinable())
+            networkThread.join();
 
-        if (_isServer)
+        if (isServer)
         {
-            if (_pollGroup != k_HSteamNetPollGroup_Invalid)
+            if (pollGroup != k_HSteamNetPollGroup_Invalid)
             {
-                SteamNetworkingSockets()->DestroyPollGroup(_pollGroup);
-                _pollGroup = k_HSteamNetPollGroup_Invalid;
+                SteamNetworkingSockets()->DestroyPollGroup(pollGroup);
+                pollGroup = k_HSteamNetPollGroup_Invalid;
             }
-            if (_listenSocket != k_HSteamListenSocket_Invalid)
+            if (listenSocket != k_HSteamListenSocket_Invalid)
             {
-                SteamNetworkingSockets()->CloseListenSocket(_listenSocket);
-                _listenSocket = k_HSteamListenSocket_Invalid;
+                SteamNetworkingSockets()->CloseListenSocket(listenSocket);
+                listenSocket = k_HSteamListenSocket_Invalid;
             }
         }
-        else if (_serverConnection != k_HSteamNetConnection_Invalid)
+        else if (serverConnection != k_HSteamNetConnection_Invalid)
         {
-            SteamNetworkingSockets()->CloseConnection(_serverConnection, 0, nullptr, false);
-            _serverConnection = k_HSteamNetConnection_Invalid;
+            SteamNetworkingSockets()->CloseConnection(serverConnection, 0, nullptr, false);
+            serverConnection = k_HSteamNetConnection_Invalid;
         }
 
-        _connections.clear();
-
-        if (_upnpMapped)
-        {
-            const std::string portStr = std::to_string(_port);
-            UPNP_DeletePortMapping(
-                    _upnpUrls.controlURL,
-                    _upnpData.first.servicetype,
-                    portStr.c_str(),
-                    "UDP",
-                    nullptr);
-            _upnpMapped = false;
-            SDL_Log("UPnP: Port mapping removed.");
-        }
-
-        if (_upnpDevList)
-        {
-            freeUPNPDevlist(_upnpDevList);
-            _upnpDevList = nullptr;
-        }
-
-        FreeUPNPUrls(&_upnpUrls);
+        connections.clear();
+        connected = false;
+        loopback.Clear();
     }
-
-    // =============================================================================
-    // Stub implementation — Steamworks not available
-    // =============================================================================
 
 #else
 
-    SteamNetwork::SteamNetwork(int /*port*/, bool /*localOnly*/)
-    {
-        SDL_Log("SteamNetwork: Steamworks support was not compiled into this build of Igneous. "
-                "Enable it with -DIGNEOUS_STEAM=ON and provide the Steamworks SDK.");
-    }
-
-    SteamNetwork::SteamNetwork(int /*port*/, const std::string& /*ip*/)
-    {
-        SDL_Log("SteamNetwork: Steamworks support was not compiled into this build of Igneous. "
-                "Enable it with -DIGNEOUS_STEAM=ON and provide the Steamworks SDK.");
-    }
-
-    SteamNetwork::SteamNetwork()
-    {
-        SDL_Log("SteamNetwork: Steamworks support was not compiled into this build of Igneous. "
-                "Enable it with -DIGNEOUS_STEAM=ON and provide the Steamworks SDK.");
-    }
-
     SteamNetwork::~SteamNetwork() = default;
 
-    void SteamNetwork::SendToServer(const std::vector<uint8_t>& /*data*/, enet_uint32 /*flags*/)
+    void SteamNetwork::Connect()
+    {
+        SDL_Log("SteamNetwork: Steamworks support was not compiled into this build of Igneous. "
+                "Enable it with -DIGNEOUS_STEAM=ON and provide the Steamworks SDK.");
+    }
+
+    void SteamNetwork::Connect(uint64_t /*hostSteamId*/)
+    {
+        SDL_Log("SteamNetwork: Steamworks support was not compiled into this build of Igneous. "
+                "Enable it with -DIGNEOUS_STEAM=ON and provide the Steamworks SDK.");
+    }
+
+    void SteamNetwork::SendToServer(const std::vector<uint8_t>& /*data*/, TransportType /*flags*/)
     {
     }
-    void SteamNetwork::SendToClient(uint32_t /*peerId*/, const std::vector<uint8_t>& /*data*/, enet_uint32 /*flags*/)
+
+    void SteamNetwork::SendToClient(uint32_t /*peerId*/, const std::vector<uint8_t>& /*data*/, TransportType /*flags*/)
     {
     }
+
     void SteamNetwork::Poll()
     {
     }
+
     bool SteamNetwork::Connected()
     {
         return false;
     }
+
     void SteamNetwork::Clean()
     {
     }

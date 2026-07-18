@@ -10,7 +10,6 @@ namespace Engine
       public:
         virtual ~IdentityProvider() = default;
 
-        // Event: OnAuthResult(userId, success)
         std::function<void(uint64_t, bool)> OnAuthResult;
 
         virtual uint64_t GetLocalId() = 0;

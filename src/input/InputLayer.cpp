@@ -10,10 +10,16 @@ namespace Engine
 
     bool InputLayer::Is(const std::string& layerName)
     {
-        if (layerName == name)
-        {
-            return true;
-        }
-        return false;
+        return layerName == name;
+    }
+
+    const std::string& InputLayer::GetName() const
+    {
+        return name;
+    }
+
+    int InputLayer::GetPriority() const
+    {
+        return priority;
     }
 }

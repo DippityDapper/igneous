@@ -16,7 +16,17 @@ namespace Engine
 
     void Window::Clean()
     {
-        SDL_DestroyWindow(window);
+        if (window)
+        {
+            SDL_DestroyWindow(window);
+            window = nullptr;
+        }
+    }
+
+    void Window::ResetForTests()
+    {
+        Clean();
+        viewport = {0, 0};
     }
 
     SDL_Window* Window::GetWindow()
