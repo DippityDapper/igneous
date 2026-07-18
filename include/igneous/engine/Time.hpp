@@ -1,3 +1,4 @@
+// Doc: docs/classes/Time.md
 #pragma once
 
 #include <cstdint>

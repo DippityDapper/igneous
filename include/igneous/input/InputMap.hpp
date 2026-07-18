@@ -1,3 +1,4 @@
+// Doc: docs/classes/InputMap.md
 #pragma once
 
 #include "igneous/input/InputAction.hpp"

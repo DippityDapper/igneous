@@ -22,5 +22,5 @@ debug_mode=true
 |--------|-------------|
 | `LoadConfig(path, name)` | Parse file into named config |
 | `SaveConfig(path, name)` | Write config to disk |
-| `GetString/Int/UInt32/UInt16/Bool` | Typed reads (throws on missing key) |
+| `GetString/Int/UInt32/UInt16/Bool` | Typed reads (throws on missing key). `GetUInt16` returns `uint16_t` and clamps out-of-range values with a logged warning. |
 | `WriteString/Int/UInt32/UInt16/Bool` | Typed writes (in memory until save) |

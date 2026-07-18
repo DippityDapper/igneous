@@ -8,6 +8,8 @@
 
 Static resource cache and sprite render pipeline. Manages textures, audio, mixer tracks, and z-sorted sprite drawing.
 
+Sprite, texture, and sound IDs are assigned from separate monotonic counters (starting at 1). `ResetForTests()` resets all counters. Unregistering a sprite and calling `RegisterSprite` again assigns a **new** ID rather than reusing the old one.
+
 ## Sprites
 
 | Method | Description |

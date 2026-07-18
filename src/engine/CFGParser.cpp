@@ -3,6 +3,7 @@
 #include <sstream>
 #include <fstream>
 #include <algorithm>
+#include <climits>
 
 #include "SDL3/SDL.h"
 
@@ -141,7 +142,7 @@ namespace Engine
         }
     }
 
-    uint32_t CFGParser::GetUInt16(const std::string& configName, const std::string& key)
+    uint16_t CFGParser::GetUInt16(const std::string& configName, const std::string& key)
     {
         if (!configs.contains(configName))
             throw std::runtime_error("Configs does not contain the config " + configName);
@@ -152,8 +153,20 @@ namespace Engine
 
         try
         {
-            uint32_t num = std::stoul(val);
-            return static_cast<uint16_t>(num);
+            const unsigned long parsed = std::stoul(val);
+            if (parsed > UINT16_MAX)
+            {
+                SDL_LogWarn(
+                        SDL_LOG_CATEGORY_APPLICATION,
+                        "Config value for %s.%s (%lu) exceeds uint16_t max; clamping to %u",
+                        configName.c_str(),
+                        key.c_str(),
+                        parsed,
+                        UINT16_MAX);
+                return UINT16_MAX;
+            }
+
+            return static_cast<uint16_t>(parsed);
         }
         catch (const std::invalid_argument&)
         {

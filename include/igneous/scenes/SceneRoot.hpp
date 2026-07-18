@@ -1,3 +1,4 @@
+// Doc: docs/classes/SceneRoot.md
 #pragma once
 
 #include <memory>
@@ -57,7 +58,7 @@ namespace Engine
 
             scenes.emplace(name, std::move(scene));
 
-            return reinterpret_cast<T*>(scenes[name].get());
+            return static_cast<T*>(scenes[name].get());
         }
 
         void RemoveScene(const std::string& name);

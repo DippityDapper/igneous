@@ -11,7 +11,7 @@ Static SDL3 renderer and ImGui integration. Queues sprite/texture draws and pres
 ## Frame Pipeline
 
 1. `BufferClear()` — clear screen, begin ImGui frame
-2. `BufferAdd(...)` — queue world-space or screen-space draws
+2. `BufferAdd(...)` — queue world-space or screen-space draws (sprites support `rotation` in degrees)
 3. `Render()` — ImGui draw + `SDL_RenderPresent`
 
 ## BufferAdd Overloads

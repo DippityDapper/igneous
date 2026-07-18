@@ -1,3 +1,4 @@
+// Doc: docs/classes/SceneManager.md
 #pragma once
 
 #include <memory>

@@ -1,6 +1,8 @@
 # Examples
 
-Standalone programs under `examples/` demonstrate one engine feature each. Every example has its own `main.cpp` and `assets/` folder (copied next to the executable at build time).
+Standalone programs under `examples/` demonstrate one engine feature each. Every example has its own `main.cpp` and `assets/` folder (copied next to the executable under `build/examples/<name>/assets`).
+
+After adding or changing assets, run **Configure** (`cmake --preset debug`) or build the example target so files sync into the build tree. The engine sets the working directory to the executable folder at startup.
 
 ## Build and run
 
@@ -46,6 +48,8 @@ Use `Animation::AddFrame(path, 8, 4, animRow, frameColumn)`.
 | [scenes](scenes.md) | Scene, SceneManager, SceneRoot | Menu ↔ game scene swap |
 | [z_index](z_index.md) | ResourceManager | Draw order / z-index |
 | [renderer](renderer.md) | Renderer | World vs screen-space draws |
+| [snake](snake.md) | Sprite, AudioStream, InputMap, Scene | Grid Snake with sprites, SFX, and JSON input |
+| [pong](pong.md) | Sprite, AudioStream, InputMap, Scene | Pong vs CPU or 2P with sprites, SFX, and JSON input |
 | [cfg](cfg.md) | CFGParser | Load/save key-value settings |
 | [database](database.md) | Database | SQLite persistence |
 | [events](events.md) | Event | Typed publish–subscribe |

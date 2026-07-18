@@ -129,6 +129,8 @@ dir build\Debug\igneous.lib
 
 ### Optional: Enable Steamworks
 
+When `IGNEOUS_STEAM` is off (default), `SteamNetwork` and `SteamIdentity` compile to no-op stubs that log once and leave `Connected() == false`. See [SteamNetwork.md](classes/SteamNetwork.md).
+
 1. Install the Steamworks SDK into `libs/steamworks/` (gitignored).
 2. Re-configure:
 

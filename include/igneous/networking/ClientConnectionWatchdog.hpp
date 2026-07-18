@@ -1,3 +1,4 @@
+// Doc: docs/classes/ClientConnectionWatchdog.md
 #pragma once
 
 #include <cstdint>

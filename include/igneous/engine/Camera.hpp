@@ -1,3 +1,4 @@
+// Doc: docs/classes/Camera.md
 #pragma once
 
 #include "igneous/engine/Vec2.hpp"

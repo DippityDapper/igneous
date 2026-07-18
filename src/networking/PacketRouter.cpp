@@ -1,5 +1,7 @@
 #include "igneous/networking/PacketRouter.hpp"
 
+#include "igneous/networking/NetworkProtocol.hpp"
+
 #include <algorithm>
 
 namespace Engine
@@ -24,8 +26,7 @@ namespace Engine
 
     void PacketRouter::DispatchMessage(uint32_t peerId, const std::vector<uint8_t>& data)
     {
-        Deserializer deserializer(data, 0);
-        PacketType type = static_cast<PacketType>(deserializer.ReadUShort());
+        const PacketType type = static_cast<PacketType>(NetworkProtocol::ReadPacketHeader(data));
         Dispatch(type, peerId, data);
     }
 

@@ -1,3 +1,4 @@
+// Doc: docs/classes/Renderer.md
 #pragma once
 
 struct SDL_Renderer;

@@ -61,6 +61,15 @@ Semantic axes use [GamepadAxis](GamepadAxis.md) (`left_x_right`, `left_y_up`, et
 
 Call `ResetEvents()` at frame start, then `HandleEvent(SDL_Event&)` for each SDL event.
 
+Window resize is handled by [Window](Window.md) (`Window::OnResize`); `IsWindowResized()` delegates to `Window::WasResized()`.
+
+## Test hooks
+
+| Method | Description |
+|--------|-------------|
+| `ResetForTests()` | Clears layers, devices, events, and action map |
+| `RestoreBaseline()` | Re-adds the `_default` layer after shutdown or full reset |
+
 ## Related
 
 - [InputMap](InputMap.md)

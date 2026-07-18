@@ -35,7 +35,6 @@ Implementation files in `src/` use the same module names. One header typically p
 ## Namespace and Includes
 
 - Almost all engine types live in the `Engine` namespace.
-- Exception: `ThreadSafeQueue` is a standalone template in the global namespace (`include/igneous/engine/ThreadSafeQueue.hpp`).
 - Public includes use the `"igneous/..."` path from the `include/` root:
 
 ```cpp
@@ -88,7 +87,7 @@ These are initialized by `Engine` and accessed globally during the game loop.
 ### Networking abstraction
 
 - `NetworkInterface` defines the transport API (`SendToServer`, `SendToClient`, `Poll`, `Connected`).
-- Implementations: `LocalNetwork` (in-process), `RemoteNetwork` (ENet), `SteamNetwork` (Steamworks, optional).
+- Implementations: `LocalNetwork` (in-process), `ENetNetwork` (UDP/ENet), `SteamNetwork` (Steamworks, optional).
 - `IdentityProvider` abstracts player identity; `LocalIdentity` and `SteamIdentity` are the concrete providers.
 - `Serializer` / `Deserializer` handle binary message encoding.
 
@@ -127,6 +126,13 @@ namespace Engine
 - Public APIs use Doxygen-style block comments (`/** @brief ... */`) above classes, methods, and members.
 - Each header's first line links to its markdown reference: `// Doc: docs/classes/<Name>.md`
 - Detailed usage and architecture notes live in `docs/`; headers carry concise API summaries.
+- CI runs `scripts/check_header_docs.sh` to verify every `include/igneous/**/*.hpp` has a `// Doc:` line pointing at an existing file (see [exceptions](#header-doc-exceptions) if any are added later).
+
+### Header doc exceptions
+
+| Header | Reason |
+|--------|--------|
+| *(none)* | All public headers require a `// Doc:` line |
 
 ## Optional Features
 

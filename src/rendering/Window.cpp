@@ -4,14 +4,37 @@
 
 namespace Engine
 {
+    namespace
+    {
+        bool wasResized = false;
+    }
+
     SDL_Window* Window::window = nullptr;
     Vec2<int> Window::viewport{0, 0};
 
-    void Engine::Window::Init(int w, int h)
+    void Engine::Window::Init(int w, int h, const std::string& title)
     {
-        window = SDL_CreateWindow("client", w, h, SDL_WINDOW_RESIZABLE);
+        window = SDL_CreateWindow(title.c_str(), w, h, SDL_WINDOW_RESIZABLE);
         viewport.x = w;
         viewport.y = h;
+        wasResized = false;
+    }
+
+    void Window::OnResize(int w, int h)
+    {
+        viewport.x = w;
+        viewport.y = h;
+        wasResized = true;
+    }
+
+    bool Window::WasResized()
+    {
+        return wasResized;
+    }
+
+    void Window::ResetFrameState()
+    {
+        wasResized = false;
     }
 
     void Window::Clean()
@@ -27,6 +50,7 @@ namespace Engine
     {
         Clean();
         viewport = {0, 0};
+        wasResized = false;
     }
 
     SDL_Window* Window::GetWindow()

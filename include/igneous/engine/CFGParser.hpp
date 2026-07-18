@@ -1,3 +1,4 @@
+// Doc: docs/classes/CFGParser.md
 #pragma once
 
 #include <map>
@@ -32,7 +33,7 @@ namespace Engine
 
         static uint32_t GetUInt32(const std::string& configName, const std::string& key);
 
-        static uint32_t GetUInt16(const std::string& configName, const std::string& key);
+        static uint16_t GetUInt16(const std::string& configName, const std::string& key);
 
         static bool GetBool(const std::string& configName, const std::string& key);
 

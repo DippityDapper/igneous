@@ -1,3 +1,4 @@
+// Doc: docs/classes/Vec2.md
 #pragma once
 
 #include <cmath>
@@ -75,9 +76,9 @@ namespace Engine
             return x == rhs.x && y == rhs.y;
         }
 
-        bool operator!=(const Vec2<float>& vec2) const
+        bool operator!=(const Vec2& rhs) const
         {
-            return x != vec2.x || y != vec2.y;
+            return x != rhs.x || y != rhs.y;
         }
 
         bool operator<(const Vec2& rhs) const
@@ -125,16 +126,16 @@ namespace Engine
 
         float Dot(const Vec2& rhs) const
         {
-            int dx = x * rhs.x;
-            int dy = y * rhs.y;
-            return dx + dy;
+            const auto dx = static_cast<double>(x) * static_cast<double>(rhs.x);
+            const auto dy = static_cast<double>(y) * static_cast<double>(rhs.y);
+            return static_cast<float>(dx + dy);
         }
 
         float Magnitude() const
         {
-            int dx = std::pow(x, 2);
-            int dy = std::pow(y, 2);
-            return std::sqrt(dx + dy);
+            const auto dx = static_cast<double>(x) * static_cast<double>(x);
+            const auto dy = static_cast<double>(y) * static_cast<double>(y);
+            return static_cast<float>(std::sqrt(dx + dy));
         }
 
         float Cross(const Vec2& rhs) const

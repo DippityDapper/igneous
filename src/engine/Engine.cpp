@@ -24,6 +24,9 @@ namespace Engine
 {
     void Engine::Init()
     {
+        running = true;
+        initState = {};
+
         if (!InitSDL())
         {
             running = false;
@@ -33,26 +36,40 @@ namespace Engine
         if (!InitENet())
         {
             running = false;
+            return;
         }
 
         if (!Input::Init())
         {
             running = false;
+            return;
         }
+        initState.input = true;
 
         if (!SceneManager::Init())
         {
             running = false;
+            return;
         }
+        initState.sceneManager = true;
     }
 
-    bool Engine::InitSDL() const
+    bool Engine::InitSDL()
     {
+#if defined(IGNEOUS_BUILD_TESTS)
+        if (TestHooks::forceInitSDLFailure)
+        {
+            SDL_Log("SDL init failed: (test hook)");
+            return false;
+        }
+#endif
+
         if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD))
         {
             SDL_Log("SDL init failed: %s", SDL_GetError());
             return false;
         }
+        initState.sdl = true;
 
         if (const char* basePath = SDL_GetBasePath())
         {
@@ -65,10 +82,13 @@ namespace Engine
         if (!MIX_Init())
         {
             SDL_Log("MIX init failed: %s", SDL_GetError());
+            SDL_Quit();
+            initState.sdl = false;
             return false;
         }
+        initState.mix = true;
 
-        Window::Init(640, 360);
+        Window::Init(initSettings.width, initSettings.height, initSettings.title);
         Renderer::Init();
 
         Time::currentTick = SDL_GetTicks();
@@ -77,19 +97,21 @@ namespace Engine
         return true;
     }
 
-    bool Engine::InitENet() const
+    bool Engine::InitENet()
     {
         if (enet_initialize() < 0)
         {
             SDL_Log("Network init failed: %s", SDL_GetError());
             return false;
         }
+        initState.enet = true;
 
         return true;
     }
 
     void Engine::HandleEvents()
     {
+        Window::ResetFrameState();
         Input::ResetEvents();
 
         SDL_Event sdlEvent;
@@ -103,8 +125,7 @@ namespace Engine
             }
             if (sdlEvent.type == SDL_EVENT_WINDOW_RESIZED)
             {
-                Window::viewport.x = sdlEvent.window.data1;
-                Window::viewport.y = sdlEvent.window.data2;
+                Window::OnResize(sdlEvent.window.data1, sdlEvent.window.data2);
             }
 
             Input::HandleEvent(sdlEvent);
@@ -153,23 +174,51 @@ namespace Engine
 
     void Engine::Clean() const
     {
-        if (SceneManager::GetSceneRoot())
+        if (initState.sceneManager && SceneManager::GetSceneRoot())
             SceneManager::GetSceneRoot()->Clean();
-        ResourceManager::Clean();
-        enet_deinitialize();
+
+        if (initState.sceneManager)
+            SceneManager::RemoveSceneRoot();
+
+        if (initState.input)
+        {
+            Input::ResetForTests();
+            Input::RestoreBaseline();
+        }
+
+        Camera::ResetForTests();
+        Time::ResetForTests();
+
+        if (initState.sdl)
+            ResourceManager::Clean();
+
+        if (initState.enet)
+            enet_deinitialize();
 
 #ifdef IGNEOUS_STEAM_ENABLED
-        SteamBootstrap::Shutdown();
+        if (initState.sdl)
+            SteamBootstrap::Shutdown();
 #endif
 
-        Renderer::Clean();
-        Window::Clean();
-
-        SDL_Quit();
+        if (initState.sdl)
+        {
+            Renderer::Clean();
+            Window::Clean();
+            SDL_Quit();
+        }
     }
 
     void Engine::Quit()
     {
         running = false;
     }
+
+#if defined(IGNEOUS_BUILD_TESTS)
+    void Engine::ResetForTests()
+    {
+        running = true;
+        initState = {};
+        TestHooks::Reset();
+    }
+#endif
 }

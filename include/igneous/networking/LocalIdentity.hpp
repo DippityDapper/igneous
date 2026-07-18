@@ -1,3 +1,4 @@
+// Doc: docs/classes/LocalIdentity.md
 #pragma once
 #include "igneous/networking/IdentityProvider.hpp"
 #include <cstdint>

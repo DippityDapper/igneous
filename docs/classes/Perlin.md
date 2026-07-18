@@ -1,11 +1,12 @@
 # Perlin
 
 **Header:** `include/igneous/engine/PerlinNoise.hpp`  
+**Implementation:** `src/engine/PerlinNoise.cpp`  
 **Namespace:** `Engine`
 
 ## Overview
 
-Classic 2D/3D Perlin noise with fBm (fractional Brownian motion), PNG export, and `.pnoise` parameter files.
+Classic 2D/3D Perlin noise with fBm (fractional Brownian motion). PNG export and `.pnoise` parameter file I/O live in `PerlinNoise.cpp` so TUs that only sample noise avoid SDL_image compile cost.
 
 ## Parameters
 

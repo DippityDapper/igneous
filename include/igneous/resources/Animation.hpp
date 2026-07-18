@@ -1,3 +1,4 @@
+// Doc: docs/classes/Animation.md
 #pragma once
 #include "igneous/resources/AnimationFrame.hpp"
 

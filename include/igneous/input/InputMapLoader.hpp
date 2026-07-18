@@ -1,3 +1,4 @@
+// Doc: docs/classes/InputMapLoader.md
 #pragma once
 
 #include "igneous/input/InputMap.hpp"

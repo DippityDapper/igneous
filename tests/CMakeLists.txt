@@ -18,12 +18,18 @@ set(IGNEOUS_TEST_SOURCES
         scenes_test.cpp
         resources_test.cpp
         networking_test.cpp
+        networking_headers_test.cpp
         test_reset_listener.cpp
 )
 
 add_executable(igneous_tests ${IGNEOUS_TEST_SOURCES})
 
 target_link_libraries(igneous_tests PRIVATE igneous Catch2::Catch2WithMain)
+
+target_compile_definitions(igneous_tests PRIVATE
+        IGNEOUS_TEST_AUDIO_WAV="${CMAKE_SOURCE_DIR}/examples/audio/assets/sounds/button/button1.wav"
+        IGNEOUS_TEST_TEXTURE_PNG="${CMAKE_SOURCE_DIR}/examples/static_sprite/assets/sprites/crew_1.png"
+)
 
 target_include_directories(igneous_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 

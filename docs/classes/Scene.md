@@ -16,7 +16,7 @@ Base class for game states (menus, gameplay, UI). Managed by `SceneRoot`; lifecy
 | `name`, `tag` | Identification and grouping |
 | `singleton` | Always active; cannot be unloaded |
 
-## Override These
+## Override These (protected)
 
 | Hook | When |
 |------|------|

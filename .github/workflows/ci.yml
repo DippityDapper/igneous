@@ -29,7 +29,11 @@ jobs:
         run: |
           cmake --build --preset debug --target igneous igneous_tests example_hello
 
+      - name: Check header documentation links
+        run: ./scripts/check_header_docs.sh
+
       - name: Test
         env:
           SDL_VIDEODRIVER: dummy
+          SDL_AUDIODRIVER: dummy
         run: ctest --test-dir build --output-on-failure

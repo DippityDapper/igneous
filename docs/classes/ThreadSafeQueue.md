@@ -1,11 +1,13 @@
 # ThreadSafeQueue
 
 **Header:** `include/igneous/engine/ThreadSafeQueue.hpp`  
-**Namespace:** *(global)*
+**Namespace:** `Engine`
 
 ## Overview
 
 Mutex-protected FIFO queue for cross-thread message passing. Used by networking backends to deliver events to the main thread.
+
+A deprecated global alias `::ThreadSafeQueue<T>` remains for one release; prefer `Engine::ThreadSafeQueue<T>`.
 
 ## API
 

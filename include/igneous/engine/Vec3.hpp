@@ -1,3 +1,4 @@
+// Doc: docs/classes/Vec3.md
 #pragma once
 
 #include <cmath>
@@ -80,7 +81,7 @@ namespace Engine
             return x == rhs.x && y == rhs.y && z == rhs.z;
         }
 
-        bool operator!=(const Vec3<float>& rhs) const
+        bool operator!=(const Vec3& rhs) const
         {
             return x != rhs.x || y != rhs.y || z != rhs.z;
         }
@@ -138,26 +139,26 @@ namespace Engine
 
         float Dot(const Vec3& rhs) const
         {
-            int dx = x * rhs.x;
-            int dy = y * rhs.y;
-            int dz = z * rhs.z;
-            return dx + dy + dz;
+            const auto dx = static_cast<double>(x) * static_cast<double>(rhs.x);
+            const auto dy = static_cast<double>(y) * static_cast<double>(rhs.y);
+            const auto dz = static_cast<double>(z) * static_cast<double>(rhs.z);
+            return static_cast<float>(dx + dy + dz);
         }
 
         float Magnitude() const
         {
-            int dx = std::pow(x, 2);
-            int dy = std::pow(y, 2);
-            int dz = std::pow(z, 2);
-            return std::sqrt(dx + dy + dz);
+            const auto dx = static_cast<double>(x) * static_cast<double>(x);
+            const auto dy = static_cast<double>(y) * static_cast<double>(y);
+            const auto dz = static_cast<double>(z) * static_cast<double>(z);
+            return static_cast<float>(std::sqrt(dx + dy + dz));
         }
 
         Vec3<float> Cross(const Vec3& rhs) const
         {
             return {
-                    (y * rhs.z - rhs.y * z),
-                    -(x * rhs.z - rhs.x * z),
-                    (x * rhs.y - y * rhs.x)};
+                    static_cast<float>(static_cast<double>(y) * rhs.z - static_cast<double>(rhs.y) * z),
+                    static_cast<float>(-(static_cast<double>(x) * rhs.z - static_cast<double>(rhs.x) * z)),
+                    static_cast<float>(static_cast<double>(x) * rhs.y - static_cast<double>(y) * rhs.x)};
         }
 
         float Comp(const Vec3& onto) const

@@ -4,6 +4,7 @@
 #include "igneous/engine/CFGParser.hpp"
 #include "igneous/engine/Camera.hpp"
 #include "igneous/engine/Database.hpp"
+#include "igneous/engine/Engine.hpp"
 #include "igneous/engine/Event.hpp"
 #include "igneous/engine/PerlinNoise.hpp"
 #include "igneous/engine/ThreadPool.hpp"
@@ -11,13 +12,46 @@
 #include "igneous/engine/Time.hpp"
 #include "igneous/engine/Vec2.hpp"
 #include "igneous/engine/Vec3.hpp"
+#include "igneous/input/Input.hpp"
 #include "igneous/rendering/Window.hpp"
 
+#include "igneous/scenes/Scene.hpp"
+
+#include <SDL3/SDL.h>
 #include <filesystem>
 #include <fstream>
 #include <future>
+#include <climits>
 
 using Catch::Matchers::WithinAbs;
+
+class EngineInitTestScene : public Engine::Scene
+{
+  public:
+    void Update(double delta) override
+    {
+        (void) delta;
+        Engine::Engine::Quit();
+    }
+};
+
+class EngineWindowSettingsTestScene : public Engine::Scene
+{
+  public:
+    static inline int observedWidth = 0;
+    static inline int observedHeight = 0;
+    static inline std::string observedTitle;
+
+    void Update(double delta) override
+    {
+        (void) delta;
+        observedWidth = Engine::Window::viewport.x;
+        observedHeight = Engine::Window::viewport.y;
+        if (Engine::Window::GetWindow())
+            observedTitle = SDL_GetWindowTitle(Engine::Window::GetWindow());
+        Engine::Engine::Quit();
+    }
+};
 
 TEST_CASE("Vec2 arithmetic and helpers", "[engine][vec2]")
 {
@@ -32,6 +66,11 @@ TEST_CASE("Vec2 arithmetic and helpers", "[engine][vec2]")
     Engine::Vec2<float> normalized = a.Normalized();
     REQUIRE_THAT(normalized.x, WithinAbs(0.6f, 0.001f));
     REQUIRE_THAT(normalized.y, WithinAbs(0.8f, 0.001f));
+
+    Engine::Vec2<float> fractional{0.1f, 0.2f};
+    REQUIRE_THAT(fractional.Magnitude(), WithinAbs(std::sqrt(0.05f), 0.001f));
+    REQUIRE_THAT(fractional.Dot(Engine::Vec2<float>{0.3f, 0.4f}), WithinAbs(0.11f, 0.001f));
+    REQUIRE(fractional != Engine::Vec2<float>{0.1f, 0.3f});
 }
 
 TEST_CASE("Vec3 arithmetic", "[engine][vec3]")
@@ -41,6 +80,63 @@ TEST_CASE("Vec3 arithmetic", "[engine][vec3]")
 
     REQUIRE(a + b == Engine::Vec3<int>{5, 7, 9});
     REQUIRE(a * 2 == Engine::Vec3<int>{2, 4, 6});
+
+    Engine::Vec3<float> fractional{0.1f, 0.2f, 0.2f};
+    REQUIRE_THAT(fractional.Magnitude(), WithinAbs(std::sqrt(0.09f), 0.001f));
+    REQUIRE_THAT(fractional.Dot(Engine::Vec3<float>{0.3f, 0.4f, 0.5f}), WithinAbs(0.21f, 0.001f));
+
+    Engine::Vec3<float> normalized = fractional.Normalized();
+    REQUIRE_THAT(normalized.Magnitude(), WithinAbs(1.0f, 0.001f));
+}
+
+TEST_CASE("Engine Run returns non-zero on init failure", "[engine][init]")
+{
+    Engine::Engine::ResetForTests();
+    Engine::TestHooks::forceInitSDLFailure = true;
+
+    Engine::Engine engine;
+    const int exitCode = engine.Run<EngineInitTestScene>("main");
+
+    REQUIRE(exitCode != 0);
+    REQUIRE(Engine::SceneManager::GetSceneRoot() == nullptr);
+
+    Engine::TestHooks::Reset();
+    Engine::Engine::ResetForTests();
+}
+
+TEST_CASE("Engine init settings configure window", "[engine][window]")
+{
+    ::EngineWindowSettingsTestScene::observedWidth = 0;
+    ::EngineWindowSettingsTestScene::observedHeight = 0;
+    ::EngineWindowSettingsTestScene::observedTitle.clear();
+
+    Engine::EngineInitSettings settings;
+    settings.width = 1280;
+    settings.height = 720;
+    settings.title = "Custom Title";
+
+    Engine::Engine engine;
+    const int exitCode = engine.Run<EngineWindowSettingsTestScene>("main", settings);
+
+    REQUIRE(exitCode == 0);
+    REQUIRE(::EngineWindowSettingsTestScene::observedWidth == 1280);
+    REQUIRE(::EngineWindowSettingsTestScene::observedHeight == 720);
+    REQUIRE(::EngineWindowSettingsTestScene::observedTitle == "Custom Title");
+    REQUIRE(Engine::SceneManager::GetSceneRoot() == nullptr);
+}
+
+TEST_CASE("Engine Clean restores static manager baseline", "[engine][lifecycle]")
+{
+    Engine::Engine engine;
+    const int exitCode = engine.Run<EngineInitTestScene>("main");
+
+    REQUIRE(exitCode == 0);
+    REQUIRE(Engine::SceneManager::GetSceneRoot() == nullptr);
+    REQUIRE(Engine::Camera::main == nullptr);
+
+    const auto layers = Engine::Input::GetInputLayers();
+    REQUIRE(layers.size() == 1);
+    REQUIRE(layers.front()->GetName() == "_default");
 }
 
 TEST_CASE("Event connect emit disconnect", "[engine][event]")
@@ -77,6 +173,26 @@ TEST_CASE("CFGParser load read write", "[engine][cfgparser]")
     Engine::CFGParser::SaveConfig(path.string(), "test");
     Engine::CFGParser::LoadConfig(path.string(), "test");
     REQUIRE(Engine::CFGParser::GetInt("test", "lives") == 3);
+
+    std::filesystem::remove(path);
+}
+
+TEST_CASE("CFGParser uint16 read write and clamp", "[engine][cfgparser]")
+{
+    const std::filesystem::path path = std::filesystem::temp_directory_path() / "igneous_cfg_uint16_test.cfg";
+    Engine::CFGParser::LoadConfig(path.string(), "uint16");
+    Engine::CFGParser::WriteUInt16("uint16", "port", 7777);
+    Engine::CFGParser::SaveConfig(path.string(), "uint16");
+    Engine::CFGParser::LoadConfig(path.string(), "uint16");
+    REQUIRE(Engine::CFGParser::GetUInt16("uint16", "port") == 7777);
+
+    {
+        std::ofstream file(path);
+        file << "port=7777\n";
+        file << "overflow=70000\n";
+    }
+    Engine::CFGParser::LoadConfig(path.string(), "uint16");
+    REQUIRE(Engine::CFGParser::GetUInt16("uint16", "overflow") == UINT16_MAX);
 
     std::filesystem::remove(path);
 }
@@ -124,7 +240,7 @@ TEST_CASE("ThreadPool runs enqueued work", "[engine][threadpool]")
 
 TEST_CASE("ThreadSafeQueue push pop", "[engine][threadsafqueue]")
 {
-    ThreadSafeQueue<int> queue;
+    Engine::ThreadSafeQueue<int> queue;
     REQUIRE(queue.Empty());
 
     queue.Push(7);

@@ -26,7 +26,7 @@ namespace Engine
         Clean();
     }
 
-    void ENetNetwork::Connect(int listenPort, int peerCount, bool localOnly)
+    void ENetNetwork::Connect(int listenPort, int peerCount, bool localOnly, bool enableUpnp)
     {
         isServer = true;
         clientWatchdog.enabled = false;
@@ -44,7 +44,7 @@ namespace Engine
             return;
         }
 
-        if (!localOnly)
+        if (enableUpnp && !localOnly)
         {
             upnpThread = std::thread([this, listenPort]()
             {

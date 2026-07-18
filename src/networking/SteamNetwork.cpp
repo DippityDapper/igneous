@@ -361,18 +361,30 @@ namespace Engine
 
 #else
 
+    namespace
+    {
+        void LogSteamStubOnce()
+        {
+            static bool logged = false;
+            if (logged)
+                return;
+
+            logged = true;
+            SDL_Log("SteamNetwork: Steamworks support was not compiled into this build of Igneous. "
+                    "Enable it with -DIGNEOUS_STEAM=ON and provide the Steamworks SDK.");
+        }
+    }
+
     SteamNetwork::~SteamNetwork() = default;
 
     void SteamNetwork::Connect()
     {
-        SDL_Log("SteamNetwork: Steamworks support was not compiled into this build of Igneous. "
-                "Enable it with -DIGNEOUS_STEAM=ON and provide the Steamworks SDK.");
+        LogSteamStubOnce();
     }
 
     void SteamNetwork::Connect(uint64_t /*hostSteamId*/)
     {
-        SDL_Log("SteamNetwork: Steamworks support was not compiled into this build of Igneous. "
-                "Enable it with -DIGNEOUS_STEAM=ON and provide the Steamworks SDK.");
+        LogSteamStubOnce();
     }
 
     void SteamNetwork::SendToServer(const std::vector<uint8_t>& /*data*/, TransportType /*flags*/)

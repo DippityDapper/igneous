@@ -1,3 +1,4 @@
+// Doc: docs/classes/SteamIdentity.md
 #pragma once
 
 #include <string>

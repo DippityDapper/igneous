@@ -1,3 +1,4 @@
+// Doc: docs/classes/NetworkInterface.md
 #pragma once
 
 #include <cstdint>

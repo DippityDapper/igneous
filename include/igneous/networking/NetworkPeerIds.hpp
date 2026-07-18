@@ -1,3 +1,4 @@
+// Doc: docs/classes/NetworkPeerIds.md
 #pragma once
 
 #include <cstdint>

@@ -1,3 +1,4 @@
+// Doc: docs/classes/Scene.md
 #pragma once
 
 #include <string>
@@ -21,12 +22,6 @@ namespace Engine
 
         bool singleton = false;
 
-      private:
-
-        bool active = false;
-
-      public:
-
         virtual ~Scene();
 
         void OnCreatedInternal();
@@ -43,7 +38,7 @@ namespace Engine
 
         bool IsActive();
 
-      private:
+      protected:
 
         virtual void OnCreated()
         {
@@ -68,5 +63,9 @@ namespace Engine
         virtual void OnActiveChanged(bool value)
         {
         }
+
+      private:
+
+        bool active = false;
     };
 }

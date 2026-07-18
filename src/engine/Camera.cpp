@@ -48,7 +48,7 @@ namespace Engine
 
     void Camera::HandleEventsInternal(InputLayer& layer)
     {
-        if (Input::IsWindowResized())
+        if (Window::WasResized())
         {
             if (limitBounds)
             {

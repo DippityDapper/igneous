@@ -1,3 +1,4 @@
+// Doc: docs/classes/ServerPeerActivityTracker.md
 #pragma once
 
 #include <cstdint>

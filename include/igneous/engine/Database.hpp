@@ -1,3 +1,4 @@
+// Doc: docs/classes/Database.md
 #pragma once
 
 #include <unordered_map>

@@ -16,6 +16,7 @@ Drawable animated or static graphic. References external position, owns named an
 | `centered` | Draw from center vs top-left |
 | `render` | Visibility toggle |
 | `scaleX`, `scaleY` | Render scale |
+| `rotation` | Clockwise rotation in degrees (`0` = upright) |
 | `zIndex`, `id` | Draw order and manager ID |
 
 ## Animations

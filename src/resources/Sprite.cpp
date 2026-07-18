@@ -23,6 +23,7 @@ namespace Engine
         currentAnimationName = sprite.currentAnimationName;
         scaleX = sprite.scaleX;
         scaleY = sprite.scaleY;
+        rotation = sprite.rotation;
         centered = sprite.centered;
         render = sprite.render;
         zIndex = sprite.zIndex;

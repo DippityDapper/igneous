@@ -10,6 +10,8 @@
 #include "imgui_internal.h"
 #include "SDL3/SDL.h"
 
+#include "igneous/rendering/Window.hpp"
+
 namespace Engine
 {
     namespace
@@ -95,7 +97,7 @@ namespace Engine
     bool Input::Init()
     {
         InitGamepads();
-        AddInputLayer("_default", 0);
+        RestoreBaseline();
         return true;
     }
 
@@ -122,7 +124,12 @@ namespace Engine
         mouseVelY = 0;
         mouseWheelVelX = 0;
         mouseWheelVelY = 0;
-        wasWindowResized = false;
+    }
+
+    void Input::RestoreBaseline()
+    {
+        if (!layers.contains("_default"))
+            AddInputLayer("_default", 0);
     }
 
     bool Input::InitGamepads()
@@ -147,7 +154,6 @@ namespace Engine
 
     void Input::ResetEvents()
     {
-        wasWindowResized = false;
         mouseVelX = 0;
         mouseVelY = 0;
         mouseWheelVelX = 0;
@@ -215,10 +221,6 @@ namespace Engine
         {
             mouseWheelVelX = event.wheel.x;
             mouseWheelVelY = event.wheel.y;
-        }
-        if (event.type == SDL_EVENT_WINDOW_RESIZED)
-        {
-            wasWindowResized = true;
         }
         if (event.type == SDL_EVENT_GAMEPAD_ADDED)
         {
@@ -506,7 +508,7 @@ namespace Engine
 
     bool Input::IsWindowResized()
     {
-        return wasWindowResized;
+        return Window::WasResized();
     }
 
     Vec2<float> Input::GetMouseScreenPosition()

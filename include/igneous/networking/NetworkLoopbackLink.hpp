@@ -1,3 +1,4 @@
+// Doc: docs/classes/NetworkLoopbackLink.md
 #pragma once
 
 #include "igneous/networking/NetworkEvents.hpp"

@@ -1,3 +1,4 @@
+// Doc: docs/classes/LocalNetwork.md
 #pragma once
 
 #include "igneous/networking/ILoopbackNetwork.hpp"

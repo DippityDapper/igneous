@@ -14,6 +14,33 @@ namespace Engine
 {
     SDL_Renderer* Renderer::renderer = nullptr;
 
+    namespace
+    {
+        void DrawSprite(SDL_Renderer* sdlRenderer, Sprite* sprite, const SDL_FRect& dest, const SDL_FRect& src)
+        {
+            SDL_Texture* texture = sprite->GetTexture();
+            if (!texture)
+                return;
+
+            if (sprite->rotation != 0.0f)
+            {
+                const SDL_FPoint pivot{dest.w * 0.5f, dest.h * 0.5f};
+                SDL_RenderTextureRotated(
+                    sdlRenderer,
+                    texture,
+                    &src,
+                    &dest,
+                    static_cast<double>(sprite->rotation),
+                    &pivot,
+                    SDL_FLIP_NONE);
+            }
+            else
+            {
+                SDL_RenderTexture(sdlRenderer, texture, &src, &dest);
+            }
+        }
+    }
+
     void Renderer::Init()
     {
         if (!Window::GetWindow())
@@ -95,7 +122,7 @@ namespace Engine
         }
 
         SDL_FRect src = sprite->GetSourceRect();
-        SDL_RenderTexture(renderer, sprite->GetTexture(), &src, &dest);
+        DrawSprite(renderer, sprite, dest, src);
     }
 
     void Renderer::BufferAdd(Vec2<float> position, SDL_Texture* texture, Camera* camera, bool centered)
@@ -175,7 +202,7 @@ namespace Engine
         }
 
         SDL_FRect src = sprite->GetSourceRect();
-        SDL_RenderTexture(renderer, sprite->GetTexture(), &src, &dest);
+        DrawSprite(renderer, sprite, dest, src);
     }
 
     void Renderer::BufferAdd(Vec2<float> position, SDL_Texture* texture, bool centered)

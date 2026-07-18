@@ -1,17 +1,21 @@
+// Doc: docs/classes/Event.md
 #pragma once
 
-#include <functional>
-#include <vector>
 #include <algorithm>
-#include <utility>
+#include <functional>
 #include <memory>
+#include <type_traits>
+#include <utility>
+#include <vector>
 
 namespace Engine
 {
 
+    /// Callback signal. Only `void` return types are supported; capture results in the callback if needed.
     template<typename Ret, typename... Args>
     class Event
     {
+        static_assert(std::is_void_v<Ret>, "Event only supports void return type.");
       public:
 
         struct Connection

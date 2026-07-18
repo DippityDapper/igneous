@@ -78,3 +78,49 @@ TEST_CASE("Scene dispatches input by layer", "[scenes][scene]")
     scene->HandleInputsInternal(gameplay);
     REQUIRE(scene->lastLayer == "gameplay");
 }
+
+TEST_CASE("SceneRoot LoadScene unloads non-singleton scenes", "[scenes][sceneroot]")
+{
+    Engine::SceneRoot root;
+    TestScene* gameplay = root.AddScene<TestScene>("gameplay", "core", true, false);
+    TestScene* hud = root.AddScene<TestScene>("hud", "overlay", true, false);
+
+    REQUIRE(gameplay->IsActive());
+    REQUIRE(hud->IsActive());
+
+    TestScene* menu = root.AddScene<TestScene>("menu", "ui", false, false);
+    REQUIRE(root.LoadScene("menu", true));
+
+    REQUIRE(menu->IsActive());
+    REQUIRE_FALSE(gameplay->IsActive());
+    REQUIRE_FALSE(hud->IsActive());
+}
+
+TEST_CASE("SceneRoot RemoveScenes removes by tag", "[scenes][sceneroot]")
+{
+    Engine::SceneRoot root;
+    root.AddScene<TestScene>("gameplay", "core", true, false);
+    root.AddScene<TestScene>("menu", "ui", false, false);
+    root.AddScene<TestScene>("settings", "ui", false, false);
+
+    root.RemoveScenes("ui");
+    root.ProcessRemoveScenesQueue();
+
+    REQUIRE(root.SceneExists("gameplay"));
+    REQUIRE_FALSE(root.SceneExists("menu"));
+    REQUIRE_FALSE(root.SceneExists("settings"));
+}
+
+TEST_CASE("SceneRoot singleton stays active on load and cannot unload", "[scenes][sceneroot]")
+{
+    Engine::SceneRoot root;
+    TestScene* overlay = root.AddScene<TestScene>("overlay", "hud", true, true);
+    TestScene* menu = root.AddScene<TestScene>("menu", "ui", false, false);
+
+    REQUIRE(root.LoadScene("menu", true));
+    REQUIRE(overlay->IsActive());
+    REQUIRE(menu->IsActive());
+
+    REQUIRE_FALSE(root.UnloadScene("overlay"));
+    REQUIRE(overlay->IsActive());
+}

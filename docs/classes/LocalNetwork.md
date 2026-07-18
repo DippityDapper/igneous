@@ -14,4 +14,14 @@ In-memory networking for single-process simulation. Pairs of `LocalNetwork` inst
 
 ## Usage
 
-Create two instances, call `SetLoopbackPeer` on each to point at the other. No real sockets.
+Create two instances and link them with [NetworkSessionFactory::LinkLoopback](NetworkSessionFactory.md). No real sockets.
+
+```cpp
+Engine::LocalNetwork server;
+Engine::LocalNetwork client;
+Engine::NetworkSessionFactory::LinkLoopback(server, client);
+```
+
+## Related
+
+- [NetworkLoopbackLink](NetworkLoopbackLink.md), [ILoopbackNetwork](ILoopbackNetwork.md)

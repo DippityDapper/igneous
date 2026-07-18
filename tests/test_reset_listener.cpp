@@ -13,6 +13,7 @@ namespace
         HeadlessSdlVideoDriver()
         {
             setenv("SDL_VIDEODRIVER", "dummy", 0);
+            setenv("SDL_AUDIODRIVER", "dummy", 0);
         }
     };
 

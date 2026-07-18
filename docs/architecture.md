@@ -99,12 +99,20 @@ flowchart TB
 | `NetworkMessage` | struct | `include/igneous/networking/NetworkEvents.hpp` | [NetworkEvents.md](classes/NetworkEvents.md) |
 | `Serializer` | class | `include/igneous/networking/Serializer.hpp` | [Serializer.md](classes/Serializer.md) |
 | `Deserializer` | class | `include/igneous/networking/Serializer.hpp` | [Serializer.md](classes/Serializer.md) |
+| `NetworkProtocol` | namespace | `include/igneous/networking/NetworkProtocol.hpp` | [Serializer.md](classes/Serializer.md#wire-format) |
 | `LocalNetwork` | class | `include/igneous/networking/LocalNetwork.hpp` | [LocalNetwork.md](classes/LocalNetwork.md) |
 | `ENetNetwork` | class | `include/igneous/networking/ENetNetwork.hpp` | [ENetNetwork.md](classes/ENetNetwork.md) |
-| `NetworkLoopbackLink` | class | `include/igneous/networking/NetworkLoopbackLink.hpp` | — |
-| `NetworkSessionFactory` | class | `include/igneous/networking/NetworkSessionFactory.hpp` | — |
-| `PacketRouter` | class | `include/igneous/networking/PacketRouter.hpp` | — |
-| `PacketTypes` | enums | `include/igneous/networking/PacketTypes.hpp` | — |
+| `NetworkLoopbackLink` | class | `include/igneous/networking/NetworkLoopbackLink.hpp` | [NetworkLoopbackLink.md](classes/NetworkLoopbackLink.md) |
+| `ILoopbackNetwork` | interface | `include/igneous/networking/ILoopbackNetwork.hpp` | [ILoopbackNetwork.md](classes/ILoopbackNetwork.md) |
+| `NetworkSessionFactory` | class | `include/igneous/networking/NetworkSessionFactory.hpp` | [NetworkSessionFactory.md](classes/NetworkSessionFactory.md) |
+| `PacketRouter` | class | `include/igneous/networking/PacketRouter.hpp` | [PacketRouter.md](classes/PacketRouter.md) |
+| `PacketType` | enum | `include/igneous/networking/PacketTypes.hpp` | [PacketTypes.md](classes/PacketTypes.md) |
+| `EnetOutboundKind` / `EnetOutboundOperation` | enum / struct | `include/igneous/networking/EnetOutboundOperation.hpp` | [EnetOutboundOperation.md](classes/EnetOutboundOperation.md) |
+| `NetworkPeerIds` | struct | `include/igneous/networking/NetworkPeerIds.hpp` | [NetworkPeerIds.md](classes/NetworkPeerIds.md) |
+| `ClientConnectionWatchdog` | class | `include/igneous/networking/ClientConnectionWatchdog.hpp` | [ClientConnectionWatchdog.md](classes/ClientConnectionWatchdog.md) |
+| `ServerPeerActivityTracker` | class | `include/igneous/networking/ServerPeerActivityTracker.hpp` | [ServerPeerActivityTracker.md](classes/ServerPeerActivityTracker.md) |
+| `IPeerDisconnectNetwork` | interface | `include/igneous/networking/IPeerDisconnectNetwork.hpp` | [IPeerDisconnectNetwork.md](classes/IPeerDisconnectNetwork.md) |
+| `SteamBootstrap` | class | `include/igneous/networking/SteamBootstrap.hpp` | [SteamBootstrap.md](classes/SteamBootstrap.md) |
 | `SteamNetwork` | class | `include/igneous/networking/SteamNetwork.hpp` | [SteamNetwork.md](classes/SteamNetwork.md) |
 
 ## External / Build Docs

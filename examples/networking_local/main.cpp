@@ -3,6 +3,7 @@
 #include "igneous/networking/NetworkEvents.hpp"
 #include "igneous/networking/NetworkPeerIds.hpp"
 #include "igneous/networking/NetworkSessionFactory.hpp"
+#include "igneous/networking/NetworkProtocol.hpp"
 #include "igneous/networking/PacketRouter.hpp"
 #include "igneous/networking/PacketTypes.hpp"
 #include "igneous/networking/Serializer.hpp"
@@ -21,7 +22,7 @@ namespace
     std::vector<uint8_t> MakeDemoPacket(const std::string& text, int value)
     {
         Engine::Serializer ser;
-        ser.Write(static_cast<uint16_t>(kDemoPacket));
+        Engine::NetworkProtocol::WritePacketHeader(ser, static_cast<uint16_t>(kDemoPacket));
         ser.Write(text);
         ser.Write(static_cast<int32_t>(value));
         return ser.GetBytes();

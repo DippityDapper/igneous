@@ -25,5 +25,5 @@ Struct carrying event data through `NetworkInterface::Poll()`:
 |--------|-------------|
 | `type` | `NetworkEventType` |
 | `peerId` | Logical peer identifier |
-| `data` | Payload bytes (for `Message`) |
+| `data` | Payload bytes (for `Message`) — includes the 2-byte `PacketType` header; see [Serializer / Deserializer](Serializer.md#wire-format) |
 | `flags` | ENet packet flags |

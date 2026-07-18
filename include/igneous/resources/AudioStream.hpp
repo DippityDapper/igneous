@@ -1,3 +1,4 @@
+// Doc: docs/classes/AudioStream.md
 #pragma once
 
 #include "SDL3_mixer/SDL_mixer.h"
@@ -5,6 +6,9 @@
 namespace Engine
 {
 
+    /**
+     * @brief Wrapper around SDL_mixer MIX_Audio with playback properties.
+     */
     class AudioStream
     {
       public:

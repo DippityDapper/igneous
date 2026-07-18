@@ -19,10 +19,10 @@ Abstract networking transport. Messages arrive via `onMessageReceived` when `Pol
 
 ## Loopback
 
-`SetLoopbackPeer(peer)` pairs two interfaces for same-process testing.
+Same-process client/server pairs use [ILoopbackNetwork](ILoopbackNetwork.md) and [NetworkSessionFactory::LinkLoopback](NetworkSessionFactory.md). There is no `SetLoopbackPeer` on this interface.
 
 ## Implementations
 
 - [LocalNetwork](LocalNetwork.md)
-- [RemoteNetwork](RemoteNetwork.md)
+- [ENetNetwork](ENetNetwork.md)
 - [SteamNetwork](SteamNetwork.md)

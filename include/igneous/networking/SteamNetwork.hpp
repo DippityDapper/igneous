@@ -1,3 +1,4 @@
+// Doc: docs/classes/SteamNetwork.md
 #pragma once
 
 #include "igneous/networking/NetworkLoopbackLink.hpp"
@@ -35,7 +36,7 @@ namespace Engine
         std::atomic<bool> connected = false;
 
         std::thread networkThread;
-        ThreadSafeQueue<NetworkMessage> fromNetwork{};
+        Engine::ThreadSafeQueue<NetworkMessage> fromNetwork{};
 
         std::unordered_map<uint32_t, HSteamNetConnection> connections{};
 

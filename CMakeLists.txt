@@ -180,6 +180,7 @@ include(cmake/IgneousExamples.cmake)
 
 if (IGNEOUS_BUILD_TESTS)
     enable_testing()
+    target_compile_definitions(igneous PUBLIC IGNEOUS_BUILD_TESTS)
 endif()
 
 if (IGNEOUS_BUILD_EXAMPLES)
@@ -206,6 +207,8 @@ if (IGNEOUS_BUILD_EXAMPLES)
             identity
             thread_pool
             renderer
+            snake
+            pong
     )
 
     foreach(EXAMPLE IN LISTS IGNEOUS_EXAMPLES)

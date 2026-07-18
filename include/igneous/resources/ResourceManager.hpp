@@ -1,9 +1,10 @@
+// Doc: docs/classes/ResourceManager.md
 #pragma once
 
 #include <map>
-#include <unordered_map>
-#include <string>
 #include <memory>
+#include <string>
+#include <unordered_map>
 
 #include "igneous/resources/Sprite.hpp"
 #include "SDL3_mixer/SDL_mixer.h"
@@ -29,6 +30,9 @@ namespace Engine
         }
     };
 
+    /**
+     * @brief Static resource cache and sprite render pipeline.
+     */
     class ResourceManager
     {
       private:
@@ -50,6 +54,18 @@ namespace Engine
         static inline std::unordered_map<std::string, int> soundPathLookup{};
 
         static inline std::unordered_map<int, std::string> soundIdToPath{};
+
+        static inline int nextSpriteId = 1;
+
+        static inline int nextTextureId = 1;
+
+        static inline int nextSoundId = 1;
+
+        static int AllocateSpriteId();
+
+        static int AllocateTextureId();
+
+        static int AllocateSoundId();
 
       public:
 
@@ -85,6 +101,12 @@ namespace Engine
         static void RenderSprites(double delta);
 
         static void SetScaleMode(SDL_ScaleMode _scaleMode);
+
+        /// Ensures the mixer and playback tracks exist. Returns false when audio is unavailable.
+        static bool EnsureAudioTracks();
+
+        /// Reserves a mixer track, creating tracks lazily or stealing the oldest when all are busy.
+        static MIX_Track* AcquireAudioTrack();
 
         static std::shared_ptr<AudioStream> LoadSound(const std::string& filePath, SDL_PropertiesID properties);
 

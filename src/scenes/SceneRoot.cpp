@@ -8,19 +8,16 @@ namespace Engine
 {
     void SceneRoot::ProcessRemoveScenesQueue()
     {
-        if (!scenesToRemove.empty())
+        while (!scenesToRemove.empty())
         {
-            for (int i = 0; i < scenesToRemove.size(); ++i)
-            {
-                std::string sceneName = scenesToRemove.front();
-                scenesToRemove.pop();
-                if (!scenes.contains(sceneName))
-                    continue;
+            std::string sceneName = scenesToRemove.front();
+            scenesToRemove.pop();
+            if (!scenes.contains(sceneName))
+                continue;
 
-                Scene* scene = scenes[sceneName].get();
-                scene->OnDestroyedInternal();
-                scenes.erase(sceneName);
-            }
+            Scene* scene = scenes[sceneName].get();
+            scene->OnDestroyedInternal();
+            scenes.erase(sceneName);
         }
     }
 

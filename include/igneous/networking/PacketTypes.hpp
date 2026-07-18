@@ -1,3 +1,4 @@
+// Doc: docs/classes/PacketTypes.md
 #pragma once
 
 #include <cstdint>
@@ -5,39 +6,44 @@
 namespace Engine
 {
 
+    /// Wire message identifiers (first two bytes of each payload). Values are fixed for protocol v0.
     enum class PacketType : uint16_t
     {
-        ConnectionRequest,
-        ConnectionRequest_,
-        ConnectionAccepted,
-        ConnectionRejected,
-        DisconnectNoticePacket,
-        ClientConnected,
+        // Connection lifecycle
+        ConnectionRequest = 0,
+        ConnectionRequest_ = 1, ///< Reserved wire slot from legacy protocol; do not reuse.
+        ConnectionAccepted = 2,
+        ConnectionRejected = 3,
+        DisconnectNoticePacket = 4,
+        ClientConnected = 5,
 
-        ServerIdRequest,
-        ServerIdPacket,
-        ServerDisconnected,
+        ServerIdRequest = 6,
+        ServerIdPacket = 7,
+        ServerDisconnected = 8,
 
-        DisconnectionRequest,
-        DisconnectionRequest_,
-        DisconnectionAcknowledged,
-        ClientDisconnected,
+        DisconnectionRequest = 9,
+        DisconnectionRequest_ = 10, ///< Reserved wire slot from legacy protocol; do not reuse.
+        DisconnectionAcknowledged = 11,
+        ClientDisconnected = 12,
 
-        LobbyPacket,
-        LobbyRequest,
-        LobbyAcknowledged,
+        // Lobby
+        LobbyPacket = 13,
+        LobbyRequest = 14,
+        LobbyAcknowledged = 15,
 
-        PlayerDataPacket,
-        PlayerLeavePacket,
+        // Player sync
+        PlayerDataPacket = 16,
+        PlayerLeavePacket = 17,
 
-        InputPacket,
+        InputPacket = 18,
 
-        EntityPacket,
-        EntityRemovePacket,
-        EntitySyncPacket,
+        // Entity sync
+        EntityPacket = 19,
+        EntityRemovePacket = 20,
+        EntitySyncPacket = 21,
 
-        EquipmentPacket,
+        EquipmentPacket = 22,
 
-        ChatMessagePacket
+        ChatMessagePacket = 23
     };
 }

@@ -1,3 +1,4 @@
+// Doc: docs/classes/Input.md
 #pragma once
 
 #include <map>
@@ -62,8 +63,6 @@ namespace Engine
 
         static inline float mouseWheelVelY = 0;
 
-        static inline bool wasWindowResized = false;
-
         static void UpdateSemanticGamepadAxis(SDL_JoystickID instanceId, SDL_GamepadAxis axis, float value);
 
       public:
@@ -74,6 +73,9 @@ namespace Engine
 
         /// Clears static input state between unit tests.
         static void ResetForTests();
+
+        /// Restores the default input layer after shutdown or test reset.
+        static void RestoreBaseline();
 
         static void ResetEvents();
 
@@ -135,6 +137,7 @@ namespace Engine
 
         static bool IsButtonJustReleased(SDL_MouseButtonFlags mouseButton);
 
+        /// Delegates to `Window::WasResized()`.
         static bool IsWindowResized();
 
         static Vec2<float> GetMouseScreenPosition();

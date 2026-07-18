@@ -1,3 +1,4 @@
+// Doc: docs/classes/ENetNetwork.md
 #pragma once
 
 #include "igd_desc_parse.h"
@@ -43,8 +44,8 @@ namespace Engine
         std::thread networkThread;
         std::thread upnpThread;
 
-        ThreadSafeQueue<NetworkMessage> fromNetwork{};
-        ThreadSafeQueue<EnetOutboundOperation> outbound{};
+        Engine::ThreadSafeQueue<NetworkMessage> fromNetwork{};
+        Engine::ThreadSafeQueue<EnetOutboundOperation> outbound{};
 
         int port = -1;
 
@@ -77,7 +78,7 @@ namespace Engine
 
         ~ENetNetwork() override;
 
-        void Connect(int listenPort, int peerCount, bool localOnly);
+        void Connect(int listenPort, int peerCount, bool localOnly, bool enableUpnp = false);
 
         void Connect(int listenPort, const std::string& ip);
 
@@ -107,6 +108,12 @@ namespace Engine
         void Poll() override;
 
         bool Connected() override;
+
+        /// True while the optional UPnP port-mapping thread is running.
+        bool IsUpnpActive() const
+        {
+            return upnpThread.joinable();
+        }
 
         void Clean() override;
     };

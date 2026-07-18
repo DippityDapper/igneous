@@ -1,3 +1,4 @@
+// Doc: docs/classes/EnetOutboundOperation.md
 #pragma once
 
 #include <cstdint>

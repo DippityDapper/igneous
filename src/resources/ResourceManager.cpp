@@ -1,6 +1,5 @@
 #include "igneous/resources/ResourceManager.hpp"
 
-#include <random>
 #include <ranges>
 
 #include "igneous/resources/AudioStream.hpp"
@@ -21,6 +20,9 @@ namespace Engine
         sounds.clear();
         soundPathLookup.clear();
         soundIdToPath.clear();
+        nextSpriteId = 1;
+        nextTextureId = 1;
+        nextSoundId = 1;
 
         if (mixer)
         {
@@ -31,7 +33,23 @@ namespace Engine
             tracks.clear();
             MIX_DestroyMixer(mixer);
             mixer = nullptr;
+            MIX_Quit();
         }
+    }
+
+    int ResourceManager::AllocateSpriteId()
+    {
+        return nextSpriteId++;
+    }
+
+    int ResourceManager::AllocateTextureId()
+    {
+        return nextTextureId++;
+    }
+
+    int ResourceManager::AllocateSoundId()
+    {
+        return nextSoundId++;
     }
 
     void ResourceManager::Clean()
@@ -52,19 +70,10 @@ namespace Engine
         if (spriteIterators.contains(sprite->id))
             return false;
 
-        std::mt19937 gen(std::random_device{}());
-
-        int spriteId;
-        do
-        {
-            std::uniform_int_distribution<> spriteIdDist(0, INT32_MAX);
-            spriteId = spriteIdDist(gen);
-        } while (spriteIterators.contains(spriteId));
-
-        sprite->id = spriteId;
+        sprite->id = AllocateSpriteId();
 
         auto it = spritesByZIndex.emplace(sprite->GetZIndex(), sprite);
-        spriteIterators[spriteId] = it;
+        spriteIterators[sprite->id] = it;
 
         return true;
     }
@@ -106,7 +115,7 @@ namespace Engine
         if (texturePathLookup.contains(filePath))
         {
             int id = texturePathLookup[filePath];
-            if (id >= 0 && id < (int) textures.size())
+            if (textures.contains(id))
             {
                 if (auto existing = textures[id].lock())
                     return existing;
@@ -124,28 +133,12 @@ namespace Engine
         SDL_SetTextureScaleMode(rawTexture, scaleMode);
         std::shared_ptr<SDL_Texture> texture(rawTexture, TextureDeleter{});
 
-        std::mt19937 gen(std::random_device{}());
+        const int textureId = AllocateTextureId();
+        textures[textureId] = texture;
+        texturePathLookup[filePath] = textureId;
+        textureIdToPath[textureId] = filePath;
 
-        int textureId;
-        do
-        {
-            std::uniform_int_distribution<> textureIdDist(0, INT32_MAX);
-            textureId = textureIdDist(gen);
-        } while (textures.contains(textureId));
-
-        if (textureId >= 0)
-        {
-            textures[textureId] = texture;
-            texturePathLookup[filePath] = textureId;
-            textureIdToPath[textureId] = filePath;
-
-            return texture;
-        }
-
-        SDL_Log("Failed to create texture id : %s : %s", filePath.c_str(), SDL_GetError());
-        texture.reset();
-
-        return nullptr;
+        return texture;
     }
 
     std::shared_ptr<SDL_Texture> ResourceManager::CreateTexture(SDL_PixelFormat format, SDL_TextureAccess access, int w, int h)
@@ -158,9 +151,7 @@ namespace Engine
                 h);
         SDL_SetTextureScaleMode(rawTexture, scaleMode);
 
-        std::mt19937 gen(std::random_device{}());
-        std::uniform_int_distribution<> textureIdDist(0, INT32_MAX);
-        int textureId = textureIdDist(gen);
+        const int textureId = AllocateTextureId();
 
         std::shared_ptr<SDL_Texture> texture(rawTexture, TextureDeleter{});
         textures[textureId] = texture;
@@ -231,28 +222,81 @@ namespace Engine
         scaleMode = _scaleMode;
     }
 
-    std::shared_ptr<AudioStream> ResourceManager::LoadSound(const std::string& filePath, SDL_PropertiesID properties)
+    bool ResourceManager::EnsureAudioTracks()
     {
-        if (filePath.empty())
-            return nullptr;
-
         if (!MIX_Init())
         {
             SDL_Log("MIX init failed: %s", SDL_GetError());
-            return nullptr;
+            return false;
         }
 
         if (!mixer)
             mixer = MIX_CreateMixerDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, nullptr);
 
+        if (!mixer)
+        {
+            SDL_Log("Failed to create audio mixer: %s", SDL_GetError());
+            return false;
+        }
+
         if (tracks.size() < trackCount)
         {
-            uint8_t needed = trackCount - tracks.size();
+            const uint8_t needed = trackCount - static_cast<uint8_t>(tracks.size());
             for (uint8_t i = 0; i < needed; ++i)
             {
-                tracks.emplace(MIX_CreateTrack(mixer), true);
+                MIX_Track* track = MIX_CreateTrack(mixer);
+                if (!track)
+                {
+                    SDL_Log("Failed to create audio track: %s", SDL_GetError());
+                    return false;
+                }
+                tracks.emplace(track, true);
             }
         }
+
+        return true;
+    }
+
+    MIX_Track* ResourceManager::AcquireAudioTrack()
+    {
+        if (!EnsureAudioTracks())
+            return nullptr;
+
+        MIX_Track* available = nullptr;
+        for (const auto& kvp: tracks)
+        {
+            if (kvp.second)
+            {
+                available = kvp.first;
+                tracks[available] = false;
+                break;
+            }
+        }
+
+        if (!available)
+        {
+            if (tracks.empty())
+            {
+                SDL_Log("No audio tracks available");
+                return nullptr;
+            }
+
+            MIX_Track* track = tracks.begin()->first;
+            MIX_StopTrack(track, 0);
+            available = track;
+            SDL_Log("Too many sounds playing at once!");
+        }
+
+        return available;
+    }
+
+    std::shared_ptr<AudioStream> ResourceManager::LoadSound(const std::string& filePath, SDL_PropertiesID properties)
+    {
+        if (filePath.empty())
+            return nullptr;
+
+        if (!EnsureAudioTracks())
+            return nullptr;
 
         if (soundPathLookup.contains(filePath))
         {
@@ -268,12 +312,7 @@ namespace Engine
             return nullptr;
         }
 
-        std::mt19937 gen(std::random_device{}());
-        int soundId;
-        do
-        {
-            soundId = std::uniform_int_distribution<>(0, INT32_MAX)(gen);
-        } while (sounds.contains(soundId));
+        const int soundId = AllocateSoundId();
 
         AudioStream* audioStream = new AudioStream(stream, properties);
         std::shared_ptr<AudioStream> sound(audioStream);

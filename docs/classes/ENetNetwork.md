@@ -4,24 +4,24 @@
 **Implementation:** `src/networking/ENetNetwork.cpp`  
 **Namespace:** `Engine`
 
-UDP transport via ENet. Matches Tower of Riz `ENetNetwork` (formerly Igneous `RemoteNetwork`).
+UDP transport via ENet.
 
 ## Connect
 
 | Method | Role |
 |--------|------|
-| `Connect(port, peerCount, localOnly)` | Start server |
+| `Connect(port, peerCount, localOnly, enableUpnp = false)` | Start server; UPnP mapping is opt-in via `enableUpnp` |
 | `Connect(port, ip)` | Connect client |
 | `Connect()` | Loopback client stub for listen-server |
 
 ## Features
 
-- Background network thread with inbound `ThreadSafeQueue`
+- Background network thread with inbound `Engine::ThreadSafeQueue`
 - Outbound queue (`EnetOutboundOperation`) — main thread enqueues sends
 - `NetworkLoopbackLink` for listen-server local client
 - `ClientConnectionWatchdog` / `ServerPeerActivityTracker`
 - `NetworkPeerIds::FromEnetPeer` peer ID mapping
-- Optional UPnP port mapping (background thread)
+- Optional UPnP port mapping (background thread; pass `enableUpnp = true` on non-local servers)
 
 ## Send
 
