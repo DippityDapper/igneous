@@ -332,7 +332,7 @@ GitHub Actions (`.github/workflows/ci.yml`) builds and runs tests on every pull 
 
 ```bash
 git submodule update --init --recursive
-cmake --preset debug -DIGNEOUS_BUILD_TESTS=ON
+cmake --preset debug -DIGNEOUS_BUILD_TESTS=ON -DSDL_UNIX_CONSOLE_BUILD=ON
 cmake --build --preset debug --target igneous igneous_tests example_hello
 ctest --test-dir build --output-on-failure
 ```

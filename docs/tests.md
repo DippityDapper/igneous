@@ -7,7 +7,7 @@ Unit tests for Igneous engine systems and subsystems. Tests live under `tests/` 
 Pull requests and pushes to `master` / `main` run [`.github/workflows/ci.yml`](../.github/workflows/ci.yml):
 
 1. Initialize submodules
-2. Configure with the `debug` preset and `-DIGNEOUS_BUILD_TESTS=ON`
+2. Configure with the `debug` preset, `-DIGNEOUS_BUILD_TESTS=ON`, and `-DSDL_UNIX_CONSOLE_BUILD=ON` (headless SDL on Linux CI runners)
 3. Build `igneous`, `igneous_tests`, and `example_hello`
 4. Run `ctest --test-dir build --output-on-failure`
 
