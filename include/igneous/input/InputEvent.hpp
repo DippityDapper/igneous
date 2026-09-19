@@ -1,4 +1,3 @@
-// Doc: docs/classes/InputEvent.md
 #pragma once
 
 namespace Engine

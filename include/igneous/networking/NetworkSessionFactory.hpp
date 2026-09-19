@@ -1,4 +1,3 @@
-// Doc: docs/classes/NetworkSessionFactory.md
 #pragma once
 
 #include <memory>

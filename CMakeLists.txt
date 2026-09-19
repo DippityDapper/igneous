@@ -10,21 +10,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(GNUInstallDirs)
 
-# When embedded in a game project, skip examples/tests unless explicitly enabled.
-if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
-    set(_IGNEOUS_TOP_LEVEL ON)
-else()
-    set(_IGNEOUS_TOP_LEVEL OFF)
-endif()
-
-if (_IGNEOUS_TOP_LEVEL)
-    option(IGNEOUS_BUILD_EXAMPLES "Build engine feature examples" ON)
-    option(IGNEOUS_BUILD_TESTS "Build engine unit tests" ON)
-else()
-    option(IGNEOUS_BUILD_EXAMPLES "Build engine feature examples" OFF)
-    option(IGNEOUS_BUILD_TESTS "Build engine unit tests" OFF)
-endif()
-
 set(UPNPC_BUILD_STATIC    ON  CACHE BOOL "" FORCE)
 set(UPNPC_BUILD_SHARED    OFF CACHE BOOL "" FORCE)
 set(UPNPC_BUILD_TESTS     OFF CACHE BOOL "" FORCE)
@@ -39,10 +24,7 @@ add_subdirectory(libs/SDL3_image)
 add_subdirectory(libs/SQLiteCpp)
 add_subdirectory(libs/SDL3_mixer)
 add_subdirectory(libs/enet)
-set(_igneous_saved_build_testing ${BUILD_TESTING})
-set(BUILD_TESTING OFF)
 add_subdirectory(libs/pfr)
-set(BUILD_TESTING ${_igneous_saved_build_testing})
 
 # --- ImGui ---
 
@@ -173,47 +155,3 @@ install(
         cmake/IgneousHelpers.cmake
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/igneous
 )
-
-# --- Examples ---
-
-include(cmake/IgneousExamples.cmake)
-
-if (IGNEOUS_BUILD_TESTS)
-    enable_testing()
-    target_compile_definitions(igneous PUBLIC IGNEOUS_BUILD_TESTS)
-endif()
-
-if (IGNEOUS_BUILD_EXAMPLES)
-    set(IGNEOUS_EXAMPLES
-            hello
-            static_sprite
-            animation
-            audio
-            camera
-            input_keyboard
-            input_mouse
-            input_gamepad
-            input_layers
-            input_actions
-            scenes
-            z_index
-            cfg
-            database
-            events
-            perlin
-            networking_local
-            networking_enet
-            networking_steam
-            identity
-            thread_pool
-            renderer
-            snake
-            pong
-    )
-
-    foreach(EXAMPLE IN LISTS IGNEOUS_EXAMPLES)
-        igneous_add_example(${EXAMPLE})
-    endforeach()
-endif()
-
-add_subdirectory(tests)

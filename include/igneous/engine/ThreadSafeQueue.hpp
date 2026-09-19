@@ -1,4 +1,3 @@
-// Doc: docs/classes/ThreadSafeQueue.md
 #pragma once
 
 #include <mutex>

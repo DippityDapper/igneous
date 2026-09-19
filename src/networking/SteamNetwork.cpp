@@ -382,16 +382,16 @@ namespace Engine
         LogSteamStubOnce();
     }
 
-    void SteamNetwork::Connect(uint64_t /*hostSteamId*/)
+    void SteamNetwork::Connect(uint64_t )
     {
         LogSteamStubOnce();
     }
 
-    void SteamNetwork::SendToServer(const std::vector<uint8_t>& /*data*/, TransportType /*flags*/)
+    void SteamNetwork::SendToServer(const std::vector<uint8_t>& , TransportType )
     {
     }
 
-    void SteamNetwork::SendToClient(uint32_t /*peerId*/, const std::vector<uint8_t>& /*data*/, TransportType /*flags*/)
+    void SteamNetwork::SendToClient(uint32_t , const std::vector<uint8_t>& , TransportType )
     {
     }
 

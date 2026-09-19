@@ -1,4 +1,3 @@
-// Doc: docs/classes/Event.md
 #pragma once
 
 #include <algorithm>
@@ -11,7 +10,6 @@
 namespace Engine
 {
 
-    /// Callback signal. Only `void` return types are supported; capture results in the callback if needed.
     template<typename Ret, typename... Args>
     class Event
     {
@@ -33,8 +31,8 @@ namespace Engine
 
         struct CallbackEntry
         {
-            size_t id;                        ///< Unique callback identifier
-            std::function<Ret(Args...)> func; ///< Stored callback function
+            size_t id;
+            std::function<Ret(Args...)> func;
         };
 
         std::vector<CallbackEntry> callbacks;

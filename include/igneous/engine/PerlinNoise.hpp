@@ -1,4 +1,3 @@
-// Doc: docs/classes/Perlin.md
 #pragma once
 
 #include <cmath>
@@ -235,4 +234,4 @@ namespace Engine
         }
     };
 
-} // namespace Engine
+}

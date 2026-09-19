@@ -1,4 +1,3 @@
-// Doc: docs/classes/ThreadPool.md
 #pragma once
 
 #include <functional>

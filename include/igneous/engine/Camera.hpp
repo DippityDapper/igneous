@@ -1,4 +1,3 @@
-// Doc: docs/classes/Camera.md
 #pragma once
 
 #include "igneous/engine/Vec2.hpp"
@@ -42,7 +41,6 @@ namespace Engine
 
       public:
 
-        /// Clears the active main camera pointer between unit tests.
         static void ResetForTests();
 
         explicit Camera();

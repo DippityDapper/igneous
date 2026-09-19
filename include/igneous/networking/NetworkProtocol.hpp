@@ -1,4 +1,3 @@
-// Doc: docs/classes/Serializer.md
 #pragma once
 
 #include <cstddef>
@@ -11,7 +10,7 @@ namespace Engine
 
     namespace NetworkProtocol
     {
-        /// Size of the packet-type prefix written before every routed message payload.
+
         inline constexpr size_t HeaderSize = sizeof(uint16_t);
 
         Serializer& WritePacketHeader(Serializer& serializer, uint16_t packetType);

@@ -1,4 +1,3 @@
-// Doc: docs/classes/PacketRouter.md
 #pragma once
 
 #include <cstdint>

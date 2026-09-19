@@ -1,4 +1,3 @@
-// Doc: docs/classes/InputLayer.md
 #pragma once
 
 #include <string>

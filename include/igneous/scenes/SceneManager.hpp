@@ -1,4 +1,3 @@
-// Doc: docs/classes/SceneManager.md
 #pragma once
 
 #include <memory>
@@ -18,7 +17,6 @@ namespace Engine
 
         static bool Init();
 
-        /// Clears the scene root between unit tests.
         static void ResetForTests();
 
         static void SetSceneRoot(std::unique_ptr<SceneRoot> root);

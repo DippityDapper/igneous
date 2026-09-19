@@ -1,4 +1,3 @@
-// Doc: docs/classes/ENetNetwork.md
 #pragma once
 
 #include "igd_desc_parse.h"
@@ -109,7 +108,6 @@ namespace Engine
 
         bool Connected() override;
 
-        /// True while the optional UPnP port-mapping thread is running.
         bool IsUpnpActive() const
         {
             return upnpThread.joinable();

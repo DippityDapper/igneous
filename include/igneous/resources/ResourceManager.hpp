@@ -1,4 +1,3 @@
-// Doc: docs/classes/ResourceManager.md
 #pragma once
 
 #include <map>
@@ -30,9 +29,6 @@ namespace Engine
         }
     };
 
-    /**
-     * @brief Static resource cache and sprite render pipeline.
-     */
     class ResourceManager
     {
       private:
@@ -79,7 +75,6 @@ namespace Engine
 
         static void Clean();
 
-        /// Clears static resource state between unit tests.
         static void ResetForTests();
 
       public:
@@ -102,10 +97,8 @@ namespace Engine
 
         static void SetScaleMode(SDL_ScaleMode _scaleMode);
 
-        /// Ensures the mixer and playback tracks exist. Returns false when audio is unavailable.
         static bool EnsureAudioTracks();
 
-        /// Reserves a mixer track, creating tracks lazily or stealing the oldest when all are busy.
         static MIX_Track* AcquireAudioTrack();
 
         static std::shared_ptr<AudioStream> LoadSound(const std::string& filePath, SDL_PropertiesID properties);

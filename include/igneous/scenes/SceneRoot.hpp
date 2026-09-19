@@ -1,4 +1,3 @@
-// Doc: docs/classes/SceneRoot.md
 #pragma once
 
 #include <memory>

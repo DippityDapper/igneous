@@ -1,4 +1,3 @@
-// Doc: docs/classes/Window.md
 #pragma once
 
 #include <string>
@@ -26,16 +25,12 @@ namespace Engine
 
         static void Clean();
 
-        /// Updates viewport dimensions and marks the window resized for this frame.
         static void OnResize(int w, int h);
 
-        /// True if a resize occurred since the last `ResetFrameState()` call.
         static bool WasResized();
 
-        /// Clears per-frame resize state at the start of event processing.
         static void ResetFrameState();
 
-        /// Clears static window state between unit tests.
         static void ResetForTests();
 
         static SDL_Window* GetWindow();

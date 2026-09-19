@@ -1,4 +1,3 @@
-// Doc: docs/classes/SteamNetwork.md
 #pragma once
 
 #include "igneous/networking/NetworkLoopbackLink.hpp"

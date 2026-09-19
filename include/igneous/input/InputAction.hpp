@@ -1,4 +1,3 @@
-// Doc: docs/classes/InputAction.md
 #pragma once
 
 #include "igneous/input/InputBinding.hpp"

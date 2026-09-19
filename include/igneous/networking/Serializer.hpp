@@ -1,4 +1,3 @@
-// Doc: docs/classes/Serializer.md
 #pragma once
 
 #include <cstdint>
@@ -13,10 +12,6 @@
 namespace Engine
 {
 
-    /// Binary serializer for network payloads.
-    ///
-    /// Arithmetic types are written with native endianness via `reinterpret_cast`.
-    /// Messages are **not** portable across endianness without an explicit conversion layer.
     class Serializer
     {
       private:
@@ -102,10 +97,6 @@ namespace Engine
         }
     };
 
-    /// Reads a serialized buffer. By default skips the 2-byte `PacketType` header — see
-    /// `NetworkProtocol::HeaderSize` and [Serializer.md](../../docs/classes/Serializer.md).
-    ///
-    /// Arithmetic reads use native endianness; cross-endian peers require explicit conversion.
     class Deserializer
     {
       private:

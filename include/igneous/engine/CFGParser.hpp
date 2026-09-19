@@ -1,4 +1,3 @@
-// Doc: docs/classes/CFGParser.md
 #pragma once
 
 #include <map>
@@ -20,7 +19,6 @@ namespace Engine
 
         CFGParser(const CFGParser& other) = delete;
 
-        /// Clears loaded configs between unit tests.
         static void ResetForTests();
 
         static void LoadConfig(const std::string& filePath, const std::string& configName);

@@ -1,4 +1,3 @@
-// Doc: docs/classes/InputBinding.md
 #pragma once
 
 #include "igneous/input/GamepadAxis.hpp"

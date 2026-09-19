@@ -118,15 +118,15 @@ namespace Engine
     void SteamIdentity::GenerateLocalUsername()
     {
     }
-    std::vector<uint8_t> SteamIdentity::GetAuthToken(uint64_t /*remoteId*/)
+    std::vector<uint8_t> SteamIdentity::GetAuthToken(uint64_t )
     {
         return {};
     }
-    bool SteamIdentity::ValidateToken(uint64_t /*id*/, const std::vector<uint8_t>& /*token*/)
+    bool SteamIdentity::ValidateToken(uint64_t , const std::vector<uint8_t>& )
     {
         return false;
     }
-    void SteamIdentity::OnDisconnect(uint64_t /*id*/)
+    void SteamIdentity::OnDisconnect(uint64_t )
     {
     }
     void SteamIdentity::Clean()

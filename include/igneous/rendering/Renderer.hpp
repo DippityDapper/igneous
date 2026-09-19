@@ -1,4 +1,3 @@
-// Doc: docs/classes/Renderer.md
 #pragma once
 
 struct SDL_Renderer;
@@ -31,7 +30,6 @@ namespace Engine
 
         static void Clean();
 
-        /// Clears static renderer state between unit tests.
         static void ResetForTests();
 
         static void BufferClear();

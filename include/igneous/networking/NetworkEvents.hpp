@@ -1,4 +1,3 @@
-// Doc: docs/classes/NetworkEvents.md
 #pragma once
 
 #include <cstdint>

@@ -1,4 +1,3 @@
-// Doc: docs/classes/IdentityProvider.md
 #pragma once
 #include <cstdint>
 #include <functional>

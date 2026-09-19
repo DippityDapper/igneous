@@ -1,4 +1,3 @@
-// Doc: docs/classes/Scene.md
 #pragma once
 
 #include <string>

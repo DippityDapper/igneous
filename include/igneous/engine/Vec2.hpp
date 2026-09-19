@@ -1,4 +1,3 @@
-// Doc: docs/classes/Vec2.md
 #pragma once
 
 #include <cmath>

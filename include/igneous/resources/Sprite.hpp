@@ -1,4 +1,3 @@
-// Doc: docs/classes/Sprite.md
 #pragma once
 
 #include "Animation.hpp"
@@ -45,7 +44,6 @@ namespace Engine
 
         float scaleY = 1.0f;
 
-        /// Clockwise rotation in degrees (SDL_RenderTextureRotated convention).
         float rotation = 0.0f;
 
       public:

@@ -1,4 +1,3 @@
-// Doc: docs/classes/Engine.md
 #pragma once
 
 #include <string>

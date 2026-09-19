@@ -1,4 +1,3 @@
-// Doc: docs/classes/IPeerDisconnectNetwork.md
 #pragma once
 
 #include <cstdint>
