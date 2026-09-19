@@ -29,19 +29,11 @@ Optional: [Ninja](https://ninja-build.org/) (faster builds), Steamworks SDK (for
 ```bash
 git clone --recurse-submodules <repo-url> igneous
 cd igneous
-./scripts/setup.sh
-./build/examples/hello/example_hello
-```
-
-Or manually:
-
-```bash
 cmake --preset debug
 cmake --build --preset debug
-./build/examples/hello/example_hello
 ```
 
-See [How to Build](docs/how-to-build.md) and [Examples](docs/examples/README.md).
+This builds `libigneous.a`. Link a game against it (see "Using Igneous in a Game" below) to actually run something.
 
 ### Optional: Steamworks
 
@@ -64,7 +56,7 @@ igneous_add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/igneous)
 igneous_add_executable(my_game src/main.cpp)
 ```
 
-Copy the starter layout from [`template/game/`](template/game/) or read [Linking Igneous](docs/linking.md) for FetchContent, Steam, assets, and install options.
+Copy the starter layout from [`template/game/`](template/game/); `cmake/Igneous.cmake` also supports FetchContent, Steam, assets, and install options — see the comments at the top of each function in that file.
 
 Minimal entry point:
 
@@ -84,31 +76,14 @@ int main() {
 }
 ```
 
-When embedded in a game, engine **examples and tests are OFF by default** so only your game and the library build.
-
-## Documentation
-
-| Document | Description |
-|----------|-------------|
-| [How to Build](docs/how-to-build.md) | Terminal and IDE build instructions |
-| [Linking Igneous](docs/linking.md) | Submodule, FetchContent, CMake API, install |
-| [Code Reference](docs/code-reference.md) | Formatting, conventions, and architecture patterns |
-| [Architecture Index](docs/architecture.md) | Lookup table for all classes and docs |
-| [Examples](docs/examples/README.md) | Standalone demos for each engine feature |
-| [Tech Debt](docs/tech-debt.md) | Known issues and improvement areas |
-| [docs/classes/](docs/classes/) | Per-class API reference |
-
 ## Project Layout
 
 ```
 include/igneous/   Public headers
 src/               Engine implementation
-examples/          Standalone feature demos (one folder per example)
 template/game/     Starter CMake project for new games
 libs/              Third-party dependencies (git submodules)
 cmake/             Igneous.cmake consumer API + helpers
-scripts/           setup.sh bootstrap script
-docs/              Documentation
 ```
 
 ## License

@@ -11,9 +11,7 @@
       "hidden": true,
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "IGNEOUS_BUILD_EXAMPLES": "ON",
-        "IGNEOUS_BUILD_TESTS": "ON"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     },
     {

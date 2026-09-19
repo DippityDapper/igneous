@@ -10,11 +10,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(GNUInstallDirs)
 
-set(UPNPC_BUILD_STATIC    ON  CACHE BOOL "" FORCE)
-set(UPNPC_BUILD_SHARED    OFF CACHE BOOL "" FORCE)
-set(UPNPC_BUILD_TESTS     OFF CACHE BOOL "" FORCE)
-set(UPNPC_BUILD_SAMPLE    OFF CACHE BOOL "" FORCE)
-set(UPNPC_NO_INSTALL      ON  CACHE BOOL "" FORCE)
+set(UPNPC_BUILD_STATIC ON  CACHE BOOL "" FORCE)
+set(UPNPC_BUILD_SHARED OFF CACHE BOOL "" FORCE)
+set(UPNPC_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(UPNPC_BUILD_SAMPLE OFF CACHE BOOL "" FORCE)
+set(UPNPC_NO_INSTALL ON  CACHE BOOL "" FORCE)
 
 # --- Dependencies ---
 
@@ -29,19 +29,19 @@ add_subdirectory(libs/pfr)
 # --- ImGui ---
 
 set(IMGUI_SRC
-        ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui/imgui.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui/imgui_draw.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui/imgui_tables.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui/imgui_widgets.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui/backends/imgui_impl_sdl3.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui/backends/imgui_impl_sdlrenderer3.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui/imgui.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui/imgui_draw.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui/imgui_tables.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui/imgui_widgets.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui/backends/imgui_impl_sdl3.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui/backends/imgui_impl_sdlrenderer3.cpp
 )
 
 add_library(imgui STATIC ${IMGUI_SRC})
 
 target_include_directories(imgui PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui
-        ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui/backends
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui/backends
 )
 
 target_link_libraries(imgui PRIVATE SDL3::SDL3)
@@ -52,29 +52,27 @@ file(GLOB_RECURSE ENGINE_SOURCE_FILES "src/*.cpp")
 file(GLOB_RECURSE ENGINE_HEADER_FILES "include/igneous/*.hpp")
 
 add_library(igneous STATIC
-        ${ENGINE_SOURCE_FILES}
-        ${ENGINE_HEADER_FILES}
+    ${ENGINE_SOURCE_FILES}
+    ${ENGINE_HEADER_FILES}
 )
 
 target_include_directories(igneous PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/libs/enet/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/enet/include
 )
 
 target_link_libraries(igneous PUBLIC
-        SDL3::SDL3
-        SDL3_image::SDL3_image
-        SDL3_mixer::SDL3_mixer
-        SQLiteCpp
-        imgui
-        enet
-        boost_pfr
-        libminiupnpc-static
+    SDL3::SDL3
+    SDL3_image::SDL3_image
+    SDL3_mixer::SDL3_mixer
+    SQLiteCpp
+    imgui
+    enet
+    boost_pfr
+    libminiupnpc-static
 )
 
-# --- Steamworks (optional) ---
-# Must come after add_library(igneous) so the target exists before we modify it.
-# IGNEOUS_STEAM_DLL is cached as INTERNAL so IgneousHelpers.cmake can read it in the game's scope.
+# --- Steamworks ---
 
 option(IGNEOUS_STEAM "Enable Steamworks integration" OFF)
 
@@ -96,8 +94,6 @@ if (IGNEOUS_STEAM)
         )
     endif()
 
-    # Cache the resolved DLL/so path so IgneousHelpers.cmake can copy it directly
-    # without relying on the steamworks target being visible in the game's scope
     set(IGNEOUS_STEAM_DLL "${STEAM_LIB}" CACHE INTERNAL "Path to the Steamworks shared library")
 
     add_library(steamworks SHARED IMPORTED GLOBAL)
@@ -133,11 +129,7 @@ add_library(igneous::igneous ALIAS igneous)
 
 include(cmake/IgneousHelpers.cmake)
 
-# --- Install (optional SDK prefix) ---
-# Ships the static library, headers, and runtime helper module.
-# Games should still prefer add_subdirectory / igneous_fetch_content (see docs/linking.md)
-# so all vendored dependencies (SDL3, etc.) are built together.
-
+# --- Install ---
 install(
         TARGETS igneous
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}

@@ -40,7 +40,7 @@ This template uses `cmake/Igneous.cmake` from the engine:
 | `igneous_add_executable(target sources...)` | Create game exe, link engine, copy SDL DLLs |
 | `igneous_link_target(target)` | Link an existing target to Igneous |
 
-See [Linking Igneous](../docs/linking.md) for FetchContent, Steam, and install options.
+See `../cmake/Igneous.cmake` for FetchContent, Steam, and install options (documented in comments above each function).
 
 ## Steam (optional)
 
